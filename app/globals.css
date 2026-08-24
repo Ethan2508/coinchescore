@@ -1,9 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  --color-felt-50: #ecfdf5;
-  --color-felt-100: #d1fae5;
-  --color-felt-500: #10b981;
   --color-felt-700: #047857;
   --color-felt-900: #064e3b;
   --color-felt-950: #022c22;
@@ -12,56 +9,42 @@
   --font-display: "Georgia", "Times New Roman", serif;
 }
 
-html,
+html {
+  background: var(--color-felt-950);
+}
+
 body {
-  height: 100%;
-  background: radial-gradient(
+  min-height: 100dvh;
+  background:
+    radial-gradient(
       ellipse at top,
       var(--color-felt-700) 0%,
       var(--color-felt-900) 60%,
       var(--color-felt-950) 100%
-    )
-    fixed;
+    );
   color: #f8fafc;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 button {
   cursor: pointer;
 }
 
-/* Custom slider */
-input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
+input,
+button,
+textarea,
+select {
+  font: inherit;
 }
-input[type="range"]::-webkit-slider-runnable-track {
-  height: 6px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 9999px;
-}
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  margin-top: -7px;
-  height: 20px;
-  width: 20px;
-  border-radius: 9999px;
-  background: var(--color-gold-500);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-}
-input[type="range"]::-moz-range-track {
-  height: 6px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 9999px;
-}
-input[type="range"]::-moz-range-thumb {
-  height: 20px;
-  width: 20px;
-  border: none;
-  border-radius: 9999px;
-  background: var(--color-gold-500);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+
+/* Prevent iOS zoom on input focus */
+input,
+textarea,
+select {
+  font-size: 16px;
 }
