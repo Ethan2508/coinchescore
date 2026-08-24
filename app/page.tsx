@@ -40,8 +40,12 @@ export default function Page() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      const loaded = raw ? (JSON.parse(raw) as State) : initial();
-      setState({ ...loaded, rows: ensureTrailingEmpty(loaded.rows) });
+      const loaded = raw ? (JSON.parse(raw) as Partial<State>) : {};
+      setState({
+        teamA: loaded.teamA?.trim() || "Nous",
+        teamB: loaded.teamB?.trim() || "Eux",
+        rows: ensureTrailingEmpty(loaded.rows ?? []),
+      });
     } catch {
       setState(initial());
     }
@@ -132,8 +136,13 @@ export default function Page() {
             onChange={(e) =>
               setState((s) => (s ? { ...s, teamA: e.target.value } : s))
             }
+            onBlur={(e) => {
+              if (!e.target.value.trim())
+                setState((s) => (s ? { ...s, teamA: "Nous" } : s));
+            }}
+            placeholder="Équipe A"
             maxLength={20}
-            className="rounded-lg bg-transparent px-2 py-1 text-center font-display text-xl font-bold text-white outline-none focus:bg-black/30"
+            className="min-w-0 rounded-lg border border-white/10 bg-black/20 px-2 py-1.5 text-center font-display text-xl font-bold text-white outline-none placeholder:font-normal placeholder:text-white/30 focus:border-gold-500"
           />
           <input
             type="text"
@@ -141,8 +150,13 @@ export default function Page() {
             onChange={(e) =>
               setState((s) => (s ? { ...s, teamB: e.target.value } : s))
             }
+            onBlur={(e) => {
+              if (!e.target.value.trim())
+                setState((s) => (s ? { ...s, teamB: "Eux" } : s));
+            }}
+            placeholder="Équipe B"
             maxLength={20}
-            className="rounded-lg bg-transparent px-2 py-1 text-center font-display text-xl font-bold text-white outline-none focus:bg-black/30"
+            className="min-w-0 rounded-lg border border-white/10 bg-black/20 px-2 py-1.5 text-center font-display text-xl font-bold text-white outline-none placeholder:font-normal placeholder:text-white/30 focus:border-gold-500"
           />
           <div />
         </div>
