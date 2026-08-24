@@ -24,8 +24,14 @@ function initial(): State {
   return {
     teamA: "Nous",
     teamB: "Eux",
-    rows: [emptyRow(), emptyRow(), emptyRow()],
+    rows: [emptyRow()],
   };
+}
+
+function ensureTrailingEmpty(rows: Row[]): Row[] {
+  const last = rows[rows.length - 1];
+  if (!last || last.a !== "" || last.b !== "") return [...rows, emptyRow()];
+  return rows;
 }
 
 export default function Page() {
@@ -34,7 +40,8 @@ export default function Page() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      setState(raw ? (JSON.parse(raw) as State) : initial());
+      const loaded = raw ? (JSON.parse(raw) as State) : initial();
+      setState({ ...loaded, rows: ensureTrailingEmpty(loaded.rows) });
     } catch {
       setState(initial());
     }
@@ -56,25 +63,21 @@ export default function Page() {
 
   const updateRow = (id: string, key: "a" | "b", value: string) => {
     const cleaned = value.replace(/[^\d-]/g, "");
-    setState((s) =>
-      s
-        ? {
-            ...s,
-            rows: s.rows.map((r) =>
-              r.id === id ? { ...r, [key]: cleaned } : r,
-            ),
-          }
-        : s,
-    );
+    setState((s) => {
+      if (!s) return s;
+      const rows = s.rows.map((r) =>
+        r.id === id ? { ...r, [key]: cleaned } : r,
+      );
+      return { ...s, rows: ensureTrailingEmpty(rows) };
+    });
   };
 
-  const addRow = () =>
-    setState((s) => (s ? { ...s, rows: [...s.rows, emptyRow()] } : s));
-
   const removeRow = (id: string) =>
-    setState((s) =>
-      s ? { ...s, rows: s.rows.filter((r) => r.id !== id) } : s,
-    );
+    setState((s) => {
+      if (!s) return s;
+      const rows = s.rows.filter((r) => r.id !== id);
+      return { ...s, rows: ensureTrailingEmpty(rows) };
+    });
 
   const reset = () => {
     if (
@@ -82,9 +85,7 @@ export default function Page() {
       !confirm("Effacer tous les scores ?")
     )
       return;
-    setState((s) =>
-      s ? { ...s, rows: [emptyRow(), emptyRow(), emptyRow()] } : s,
-    );
+    setState((s) => (s ? { ...s, rows: [emptyRow()] } : s));
   };
 
   const resetAll = () => {
@@ -143,40 +144,48 @@ export default function Page() {
         </div>
 
         <ul>
-          {state.rows.map((r, i) => (
-            <li
-              key={r.id}
-              className="grid grid-cols-[3rem_1fr_1fr_2.5rem] items-center gap-2 border-b border-white/5 p-2 last:border-b-0"
-            >
-              <div className="text-center text-sm font-semibold tabular-nums text-white/40">
-                {i + 1}
-              </div>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={r.a}
-                onChange={(e) => updateRow(r.id, "a", e.target.value)}
-                placeholder="—"
-                className="w-full rounded-lg border border-white/5 bg-black/20 px-3 py-3 text-center font-display text-2xl tabular-nums text-white outline-none placeholder:text-white/20 focus:border-gold-500"
-              />
-              <input
-                type="text"
-                inputMode="numeric"
-                value={r.b}
-                onChange={(e) => updateRow(r.id, "b", e.target.value)}
-                placeholder="—"
-                className="w-full rounded-lg border border-white/5 bg-black/20 px-3 py-3 text-center font-display text-2xl tabular-nums text-white outline-none placeholder:text-white/20 focus:border-gold-500"
-              />
-              <button
-                type="button"
-                onClick={() => removeRow(r.id)}
-                aria-label="Supprimer la ligne"
-                className="rounded-full text-white/30 hover:text-white/70"
+          {state.rows.map((r, i) => {
+            const isEmpty = r.a === "" && r.b === "";
+            const isLast = i === state.rows.length - 1;
+            return (
+              <li
+                key={r.id}
+                className="grid grid-cols-[3rem_1fr_1fr_2.5rem] items-center gap-2 border-b border-white/5 p-2 last:border-b-0"
               >
-                ✕
-              </button>
-            </li>
-          ))}
+                <div className="text-center text-sm font-semibold tabular-nums text-white/40">
+                  {i + 1}
+                </div>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={r.a}
+                  onChange={(e) => updateRow(r.id, "a", e.target.value)}
+                  placeholder="—"
+                  className="w-full rounded-lg border border-white/5 bg-black/20 px-3 py-3 text-center font-display text-2xl tabular-nums text-white outline-none placeholder:text-white/20 focus:border-gold-500"
+                />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={r.b}
+                  onChange={(e) => updateRow(r.id, "b", e.target.value)}
+                  placeholder="—"
+                  className="w-full rounded-lg border border-white/5 bg-black/20 px-3 py-3 text-center font-display text-2xl tabular-nums text-white outline-none placeholder:text-white/20 focus:border-gold-500"
+                />
+                {isEmpty && isLast ? (
+                  <div />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => removeRow(r.id)}
+                    aria-label="Supprimer la ligne"
+                    className="rounded-full text-white/30 hover:text-white/70"
+                  >
+                    ✕
+                  </button>
+                )}
+              </li>
+            );
+          })}
         </ul>
 
         <div className="grid grid-cols-[3rem_1fr_1fr_2.5rem] items-center gap-2 border-t-2 border-gold-500/50 bg-black/30 p-3">
@@ -193,16 +202,9 @@ export default function Page() {
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={addRow}
-        className="mt-4 w-full rounded-2xl border-2 border-dashed border-white/15 bg-white/5 px-4 py-4 text-base font-semibold text-white/70 transition hover:border-gold-500 hover:bg-white/10 hover:text-white active:scale-[0.99]"
-      >
-        + Ajouter une manche
-      </button>
-
       <p className="mt-6 text-center text-xs text-white/40">
-        Les scores sont sauvegardés automatiquement sur cet appareil.
+        Une nouvelle ligne s&apos;ajoute automatiquement. Sauvegarde locale
+        automatique.
       </p>
     </main>
   );
