@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#022c22"/>
-  <path d="M256 148c-36 0-64 28-64 60 0 28 18 48 38 60-12 24-30 38-48 52v20h148v-20c-18-14-36-28-48-52 20-12 38-32 38-60 0-32-28-60-64-60z" fill="#f59e0b"/>
-  <text x="256" y="400" font-family="Georgia, serif" font-size="88" font-weight="700" fill="#f8fafc" text-anchor="middle">CS</text>
-</svg>
