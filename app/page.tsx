@@ -56,10 +56,20 @@ export default function Page() {
     }
   }, [state]);
 
+  const [confirmReset, setConfirmReset] = useState(false);
+
+  useEffect(() => {
+    if (!confirmReset) return;
+    const t = setTimeout(() => setConfirmReset(false), 3000);
+    return () => clearTimeout(t);
+  }, [confirmReset]);
+
   if (!state) return null;
 
   const totalA = state.rows.reduce((s, r) => s + (parseInt(r.a) || 0), 0);
   const totalB = state.rows.reduce((s, r) => s + (parseInt(r.b) || 0), 0);
+
+  const hasScores = state.rows.some((r) => r.a || r.b);
 
   const updateRow = (id: string, key: "a" | "b", value: string) => {
     const cleaned = value.replace(/[^\d-]/g, "");
@@ -79,18 +89,17 @@ export default function Page() {
       return { ...s, rows: ensureTrailingEmpty(rows) };
     });
 
-  const reset = () => {
-    if (
-      state.rows.some((r) => r.a || r.b) &&
-      !confirm("Effacer tous les scores ?")
-    )
+  const handleReset = () => {
+    if (!hasScores) {
+      setState((s) => (s ? { ...s, rows: [emptyRow()] } : s));
       return;
+    }
+    if (!confirmReset) {
+      setConfirmReset(true);
+      return;
+    }
     setState((s) => (s ? { ...s, rows: [emptyRow()] } : s));
-  };
-
-  const resetAll = () => {
-    if (!confirm("Tout réinitialiser (noms + scores) ?")) return;
-    setState(initial());
+    setConfirmReset(false);
   };
 
   return (
@@ -99,22 +108,17 @@ export default function Page() {
         <h1 className="font-display text-3xl font-bold tracking-tight">
           CoincheScore
         </h1>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={reset}
-            className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 hover:bg-white/10"
-          >
-            Nouvelle partie
-          </button>
-          <button
-            type="button"
-            onClick={resetAll}
-            className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/60 hover:bg-white/10"
-          >
-            Reset total
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleReset}
+          className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+            confirmReset
+              ? "border-red-500 bg-red-500/20 text-red-300"
+              : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+          }`}
+        >
+          {confirmReset ? "Confirmer ?" : "Nouvelle partie"}
+        </button>
       </header>
 
       <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur">
