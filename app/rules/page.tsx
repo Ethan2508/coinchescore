@@ -121,8 +121,12 @@ function CoincheRules() {
             cas, la belote ne sauve pas la chute.
           </li>
           <li>
-            <strong>Coinche</strong> ×2, <strong>Surcoinche</strong> ×4 sur le
-            score final de la manche.
+            <strong>Coinche</strong>&nbsp;: forfait de <strong>320 + contrat</strong>{" "}
+            pour le vainqueur du duel, l&apos;autre équipe = 0.<br />
+            → Preneur réussi coinché&nbsp;: <em>320 + contrat</em>.<br />
+            → Preneur chuté coinché&nbsp;: défense = <em>320 + contrat</em>.<br />
+            <strong>Surcoinche</strong> double le forfait (×2). La belote/rebelote
+            s&apos;ajoute toujours (+20) au vainqueur du duel.
           </li>
         </ul>
       </Section>

@@ -65,18 +65,13 @@ function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
 }
 
-function multiplier(c: CoincheLevel): number {
-  if (c === "coinche") return 2;
-  if (c === "surcoinche") return 4;
-  return 1;
-}
-
 export function computeScore(input: ScoreInput): ScoreResult {
   const takerPts = clamp(input.takerPoints, 0, HAND_TOTAL);
   const defensePts = HAND_TOTAL - takerPts;
   const allTricks = isAllTricksContract(input.contract);
   const belotAnnounced = isBelotAnnounced(input.contract);
-  const mult = allTricks ? 1 : multiplier(input.coinche);
+  const coinched = !allTricks && input.coinche !== "none";
+  const surMult = input.coinche === "surcoinche" ? 2 : 1;
   const capot = takerPts === HAND_TOTAL;
 
   let takerScore = 0;
@@ -102,7 +97,19 @@ export function computeScore(input: ScoreInput): ScoreResult {
       input.belote === input.taker && takerPts > defensePts;
     const effectiveTakerForContract =
       takerPts + (belotHelpsTaker ? 20 : 0);
-    if (effectiveTakerForContract >= input.contract) {
+    const made = effectiveTakerForContract >= input.contract;
+
+    if (coinched) {
+      const coincheScore = (320 + input.contract) * surMult;
+      if (made) {
+        takerScore = coincheScore;
+        defenseScore = 0;
+      } else {
+        chute = true;
+        takerScore = 0;
+        defenseScore = coincheScore;
+      }
+    } else if (made) {
       takerScore = input.contract + takerPts;
       defenseScore = defensePts;
       if (capot) takerScore += 90;
@@ -111,9 +118,6 @@ export function computeScore(input: ScoreInput): ScoreResult {
       defenseScore = 160 + input.contract;
     }
   }
-
-  takerScore *= mult;
-  defenseScore *= mult;
 
   if (input.belote !== "none" && !belotAnnounced) {
     if (input.belote === input.taker) takerScore += 20;
