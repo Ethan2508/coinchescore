@@ -53,7 +53,17 @@ function saveHistory(list: Game[]) {
 }
 
 function haptic(pattern: number | number[] = 8) {
-  if (typeof navigator === "undefined") return;
+  if (typeof window === "undefined") return;
+  // Native (iOS/Android via Capacitor)
+  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+  if (cap?.isNativePlatform?.()) {
+    void import("@capacitor/haptics").then(({ Haptics, ImpactStyle }) => {
+      const style = Array.isArray(pattern) || pattern > 20 ? ImpactStyle.Medium : ImpactStyle.Light;
+      Haptics.impact({ style }).catch(() => {});
+    });
+    return;
+  }
+  // Web (Android Chrome)
   try {
     navigator.vibrate?.(pattern);
   } catch {

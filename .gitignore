@@ -7,3 +7,25 @@ dist
 !.env.example
 *.log
 .vercel
+
+# Capacitor / iOS
+ios/App/Pods
+ios/App/App/public
+ios/DerivedData
+ios/App/build
+ios/App/*.xcworkspace/xcuserdata
+ios/App/*.xcodeproj/xcuserdata
+
+# Capacitor / Android
+android/.gradle
+android/.idea
+android/build
+android/app/build
+android/app/release
+android/captures
+android/local.properties
+android/app/src/main/assets/public
+
+# Capacitor generated config
+ios/App/App/capacitor.config.json
+android/app/src/main/assets/capacitor.config.json

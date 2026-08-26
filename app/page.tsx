@@ -66,7 +66,10 @@ export default function HomePage() {
       </div>
 
       <div className="mt-auto pt-10 text-center text-xs text-white/30">
-        v0.2 · coinche &amp; belote
+        v0.2 · coinche &amp; belote ·{" "}
+        <Link href="/privacy" className="underline hover:text-white/60">
+          Confidentialité
+        </Link>
       </div>
     </main>
   );
