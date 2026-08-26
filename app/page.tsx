@@ -1,65 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-interface Row {
-  id: string;
-  a: string;
-  b: string;
-}
-
-interface State {
-  teamA: string;
-  teamB: string;
-  rows: Row[];
-}
-
-const STORAGE_KEY = "coinchescore:v2";
-
-function emptyRow(): Row {
-  return { id: crypto.randomUUID(), a: "", b: "" };
-}
-
-function initial(): State {
-  return {
-    teamA: "Nous",
-    teamB: "Eux",
-    rows: [emptyRow()],
-  };
-}
-
-function ensureTrailingEmpty(rows: Row[]): Row[] {
-  const last = rows[rows.length - 1];
-  if (!last || last.a !== "" || last.b !== "") return [...rows, emptyRow()];
-  return rows;
-}
+import { useEffect, useMemo, useState } from "react";
+import HistoryModal from "@/components/HistoryModal";
+import RulesModal from "@/components/RulesModal";
+import TargetModal from "@/components/TargetModal";
+import { computeTotals, detectWinner } from "@/lib/game";
+import { useGame } from "@/lib/useGame";
 
 export default function Page() {
-  const [state, setState] = useState<State | null>(null);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const loaded = raw ? (JSON.parse(raw) as Partial<State>) : {};
-      setState({
-        teamA: loaded.teamA?.trim() || "Nous",
-        teamB: loaded.teamB?.trim() || "Eux",
-        rows: ensureTrailingEmpty(loaded.rows ?? []),
-      });
-    } catch {
-      setState(initial());
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!state) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      // ignore
-    }
-  }, [state]);
-
+  const g = useGame();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const [targetOpen, setTargetOpen] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => {
@@ -68,62 +21,90 @@ export default function Page() {
     return () => clearTimeout(t);
   }, [confirmReset]);
 
-  if (!state) return null;
+  const totals = useMemo(
+    () => (g.state ? computeTotals(g.state.rows) : { a: 0, b: 0 }),
+    [g.state],
+  );
 
-  const totalA = state.rows.reduce((s, r) => s + (parseInt(r.a) || 0), 0);
-  const totalB = state.rows.reduce((s, r) => s + (parseInt(r.b) || 0), 0);
+  if (!g.state) return null;
+  const { state } = g;
 
-  const hasScores = state.rows.some((r) => r.a || r.b);
+  const winner = detectWinner(totals.a, totals.b, state.target);
+  const hasScores = totals.a > 0 || totals.b > 0;
+  const pctA = Math.min(100, (totals.a / state.target) * 100);
+  const pctB = Math.min(100, (totals.b / state.target) * 100);
 
-  const updateRow = (id: string, key: "a" | "b", value: string) => {
-    const cleaned = value.replace(/[^\d-]/g, "");
-    setState((s) => {
-      if (!s) return s;
-      const rows = s.rows.map((r) =>
-        r.id === id ? { ...r, [key]: cleaned } : r,
-      );
-      return { ...s, rows: ensureTrailingEmpty(rows) };
-    });
-  };
-
-  const removeRow = (id: string) =>
-    setState((s) => {
-      if (!s) return s;
-      const rows = s.rows.filter((r) => r.id !== id);
-      return { ...s, rows: ensureTrailingEmpty(rows) };
-    });
-
-  const handleReset = () => {
+  const handleNewGame = () => {
     if (!hasScores) {
-      setState((s) => (s ? { ...s, rows: [emptyRow()] } : s));
+      g.newGame();
+      setMenuOpen(false);
       return;
     }
     if (!confirmReset) {
       setConfirmReset(true);
       return;
     }
-    setState((s) => (s ? { ...s, rows: [emptyRow()] } : s));
+    g.newGame();
     setConfirmReset(false);
+    setMenuOpen(false);
   };
 
   return (
     <main className="mx-auto max-w-3xl p-4 sm:p-6">
-      <header className="mb-4 flex items-center justify-between">
-        <h1 className="font-display text-3xl font-bold tracking-tight">
+      <header className="mb-3 flex items-center justify-between">
+        <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
           CoincheScore
         </h1>
-        <button
-          type="button"
-          onClick={handleReset}
-          className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
-            confirmReset
-              ? "border-red-500 bg-red-500/20 text-red-300"
-              : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
-          }`}
-        >
-          {confirmReset ? "Confirmer ?" : "Nouvelle partie"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={g.undo}
+            disabled={!g.canUndo}
+            aria-label="Annuler"
+            className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            ↶ Annuler
+          </button>
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Menu"
+            className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-lg leading-none text-white/80 hover:bg-white/10"
+          >
+            ⋯
+          </button>
+        </div>
       </header>
+
+      <button
+        type="button"
+        onClick={() => setTargetOpen(true)}
+        className="mb-4 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-left transition hover:bg-white/10"
+      >
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
+            Score &agrave; atteindre
+          </div>
+          <div className="font-display text-lg font-bold tabular-nums">
+            {state.target} pts
+          </div>
+        </div>
+        <div className="flex-1 px-4">
+          <ProgressBars pctA={pctA} pctB={pctB} winner={winner} />
+        </div>
+        <div className="text-xs text-white/40">Modifier</div>
+      </button>
+
+      {winner && (
+        <div className="mb-3 rounded-2xl border border-gold-500 bg-gold-500/15 p-3 text-center">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-gold-400">
+            Victoire
+          </div>
+          <div className="mt-0.5 font-display text-lg font-bold">
+            {winner === "A" ? state.teamA : state.teamB} remporte la partie
+          </div>
+        </div>
+      )}
 
       <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur">
         <div className="grid grid-cols-[3rem_1fr_1fr_2.5rem] items-center gap-2 border-b border-white/10 bg-black/20 p-3">
@@ -133,12 +114,9 @@ export default function Page() {
           <input
             type="text"
             value={state.teamA}
-            onChange={(e) =>
-              setState((s) => (s ? { ...s, teamA: e.target.value } : s))
-            }
+            onChange={(e) => g.setTeam("A", e.target.value)}
             onBlur={(e) => {
-              if (!e.target.value.trim())
-                setState((s) => (s ? { ...s, teamA: "Nous" } : s));
+              if (!e.target.value.trim()) g.setTeam("A", "Nous");
             }}
             placeholder="Équipe A"
             maxLength={20}
@@ -147,12 +125,9 @@ export default function Page() {
           <input
             type="text"
             value={state.teamB}
-            onChange={(e) =>
-              setState((s) => (s ? { ...s, teamB: e.target.value } : s))
-            }
+            onChange={(e) => g.setTeam("B", e.target.value)}
             onBlur={(e) => {
-              if (!e.target.value.trim())
-                setState((s) => (s ? { ...s, teamB: "Eux" } : s));
+              if (!e.target.value.trim()) g.setTeam("B", "Eux");
             }}
             placeholder="Équipe B"
             maxLength={20}
@@ -177,7 +152,8 @@ export default function Page() {
                   type="text"
                   inputMode="numeric"
                   value={r.a}
-                  onChange={(e) => updateRow(r.id, "a", e.target.value)}
+                  onChange={(e) => g.updateRow(r.id, "a", e.target.value)}
+                  onBlur={g.commitRow}
                   placeholder="—"
                   className="w-full rounded-lg border border-white/5 bg-black/20 px-3 py-3 text-center font-display text-2xl tabular-nums text-white outline-none placeholder:text-white/20 focus:border-gold-500"
                 />
@@ -185,7 +161,8 @@ export default function Page() {
                   type="text"
                   inputMode="numeric"
                   value={r.b}
-                  onChange={(e) => updateRow(r.id, "b", e.target.value)}
+                  onChange={(e) => g.updateRow(r.id, "b", e.target.value)}
+                  onBlur={g.commitRow}
                   placeholder="—"
                   className="w-full rounded-lg border border-white/5 bg-black/20 px-3 py-3 text-center font-display text-2xl tabular-nums text-white outline-none placeholder:text-white/20 focus:border-gold-500"
                 />
@@ -194,7 +171,7 @@ export default function Page() {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => removeRow(r.id)}
+                    onClick={() => g.removeRow(r.id)}
                     aria-label="Supprimer la ligne"
                     className="rounded-full text-white/30 hover:text-white/70"
                   >
@@ -210,20 +187,165 @@ export default function Page() {
           <div className="text-center text-xs font-semibold uppercase tracking-wider text-gold-400">
             Σ
           </div>
-          <div className="text-center font-display text-4xl font-bold tabular-nums text-gold-400">
-            {totalA}
+          <div
+            className={`text-center font-display text-4xl font-bold tabular-nums ${
+              winner === "A" ? "text-gold-400" : "text-gold-400/90"
+            }`}
+          >
+            {totals.a}
           </div>
-          <div className="text-center font-display text-4xl font-bold tabular-nums text-gold-400">
-            {totalB}
+          <div
+            className={`text-center font-display text-4xl font-bold tabular-nums ${
+              winner === "B" ? "text-gold-400" : "text-gold-400/90"
+            }`}
+          >
+            {totals.b}
           </div>
           <div />
         </div>
       </div>
 
-      <p className="mt-6 text-center text-xs text-white/40">
-        Une nouvelle ligne s&apos;ajoute automatiquement. Sauvegarde locale
-        automatique.
-      </p>
+      <MenuModal
+        open={menuOpen}
+        onClose={() => {
+          setMenuOpen(false);
+          setConfirmReset(false);
+        }}
+        onOpenHistory={() => {
+          setMenuOpen(false);
+          setHistoryOpen(true);
+        }}
+        onOpenRules={() => {
+          setMenuOpen(false);
+          setRulesOpen(true);
+        }}
+        onNewGame={handleNewGame}
+        confirmReset={confirmReset}
+        hasScores={hasScores}
+      />
+
+      <HistoryModal
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        history={state.history}
+        onClear={g.clearHistory}
+      />
+
+      <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
+
+      <TargetModal
+        open={targetOpen}
+        onClose={() => setTargetOpen(false)}
+        target={state.target}
+        onChange={g.setTarget}
+      />
     </main>
+  );
+}
+
+function ProgressBars({
+  pctA,
+  pctB,
+  winner,
+}: {
+  pctA: number;
+  pctB: number;
+  winner: "A" | "B" | null;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="h-1.5 overflow-hidden rounded-full bg-black/40">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${winner === "A" ? "bg-gold-500" : "bg-white/50"}`}
+          style={{ width: `${pctA}%` }}
+        />
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-black/40">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${winner === "B" ? "bg-gold-500" : "bg-white/50"}`}
+          style={{ width: `${pctB}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+interface MenuProps {
+  open: boolean;
+  onClose: () => void;
+  onOpenHistory: () => void;
+  onOpenRules: () => void;
+  onNewGame: () => void;
+  confirmReset: boolean;
+  hasScores: boolean;
+}
+
+function MenuModal({
+  open,
+  onClose,
+  onOpenHistory,
+  onOpenRules,
+  onNewGame,
+  confirmReset,
+  hasScores,
+}: MenuProps) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-t-3xl border border-white/10 bg-felt-900 p-4 shadow-2xl sm:rounded-3xl"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+        }}
+      >
+        <div className="flex flex-col gap-2">
+          <MenuItem icon="📜" label="Historique des parties" onClick={onOpenHistory} />
+          <MenuItem icon="🃏" label="Règles coinche / belote" onClick={onOpenRules} />
+          <button
+            type="button"
+            onClick={onNewGame}
+            className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-semibold transition ${
+              confirmReset
+                ? "border border-red-500 bg-red-500/20 text-red-300"
+                : "border border-white/10 bg-white/5 text-white/90 hover:bg-white/10"
+            }`}
+          >
+            <span className="text-lg">🔄</span>
+            <span>
+              {confirmReset
+                ? "Confirmer la nouvelle partie ?"
+                : hasScores
+                  ? "Nouvelle partie (archive celle-ci)"
+                  : "Nouvelle partie"}
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MenuItem({
+  icon,
+  label,
+  onClick,
+}: {
+  icon: string;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm font-semibold text-white/90 transition hover:bg-white/10"
+    >
+      <span className="text-lg">{icon}</span>
+      <span>{label}</span>
+    </button>
   );
 }
