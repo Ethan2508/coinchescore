@@ -68,8 +68,9 @@ function CoincheRules() {
       </Section>
 
       <Section title="Points d’une manche">
-        Total de <strong>162 points</strong> répartis entre les 2 équipes
-        (avec le 10 de der). À l’atout, les cartes valent plus&nbsp;:
+        Total de <strong>160 points</strong> répartis entre les 2 équipes
+        (arrondi aux dizaines à la table). À l’atout, les cartes valent
+        plus&nbsp;:
         <br />
         <span className="text-white/70">
           Valet 20 · 9 14 · As 11 · 10 10 · R 4 · D 3
@@ -127,11 +128,11 @@ function BeloteRules() {
         <ul className="list-disc space-y-1 pl-5">
           <li>
             <strong>Preneur ≥ 82</strong>&nbsp;: chaque équipe garde ses points
-            faits (162 au total).
+            faits (160 au total).
           </li>
           <li>
             <strong>Preneur &lt; 82</strong> («&nbsp;dedans&nbsp;»)&nbsp;:
-            preneur = 0, défense = 162.
+            preneur = 0, défense = 160.
           </li>
           <li>
             <strong>Capot</strong> (tous les plis)&nbsp;: +90 pts en bonus.

@@ -7,6 +7,7 @@ import {
   CAPOT_CONTRACT,
   CONTRACTS,
   GENERALE_CONTRACT,
+  HAND_STEP,
   HAND_TOTAL,
   contractLabel,
 } from "@/lib/scoring";
@@ -43,7 +44,7 @@ export default function HandEditor({
   const [suit, setSuit] = useState<Suit>(initial?.suit ?? "pique");
   const [contract, setContract] = useState<number>(initial?.contract ?? 80);
   const [takerPoints, setTakerPoints] = useState<number>(
-    initial?.takerPoints ?? 82,
+    initial?.takerPoints ?? 90,
   );
   const [belote, setBelote] = useState<"none" | TeamId>(
     initial?.belote ?? "none",
@@ -159,13 +160,13 @@ export default function HandEditor({
             type="range"
             min={0}
             max={HAND_TOTAL}
-            step={1}
+            step={HAND_STEP}
             value={takerPoints}
             onChange={(e) => setTakerPoints(Number(e.target.value))}
             className="w-full"
           />
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {[0, 50, 82, 90, 100, 120, 140, 162].map((v) => (
+            {[0, 50, 80, 90, 100, 110, 120, 140, 160].map((v) => (
               <button
                 key={v}
                 type="button"
@@ -176,6 +177,9 @@ export default function HandEditor({
               </button>
             ))}
           </div>
+          <p className="mt-2 text-xs text-white/40">
+            Arrondi aux dizaines · défense = {HAND_TOTAL - takerPoints}
+          </p>
         </Section>
       )}
 

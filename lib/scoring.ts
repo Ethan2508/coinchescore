@@ -1,6 +1,7 @@
 import type { CoincheLevel, Hand, TeamId } from "./types";
 
-export const HAND_TOTAL = 162;
+export const HAND_TOTAL = 160;
+export const HAND_STEP = 10;
 export const CAPOT_CONTRACT = 250;
 export const GENERALE_CONTRACT = 500;
 
