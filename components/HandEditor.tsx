@@ -4,12 +4,13 @@ import { useState } from "react";
 import Modal from "./Modal";
 import { computeScore } from "@/lib/store";
 import {
-  CAPOT_CONTRACT,
   CONTRACTS,
-  GENERALE_CONTRACT,
   HAND_STEP,
   HAND_TOTAL,
   contractLabel,
+  contractShortLabel,
+  isAllTricksContract as checkAllTricks,
+  isBelotAnnounced as checkBelotAnnounced,
 } from "@/lib/scoring";
 import {
   SUITS,
@@ -53,15 +54,16 @@ export default function HandEditor({
     initial?.coinche ?? "none",
   );
 
-  const isAllTricksContract =
-    contract === CAPOT_CONTRACT || contract === GENERALE_CONTRACT;
+  const isAllTricksContract = checkAllTricks(contract);
+  const belotAnnounced = checkBelotAnnounced(contract);
   const effectiveTakerPoints = isAllTricksContract ? HAND_TOTAL : takerPoints;
+  const effectiveBelote = belotAnnounced ? "none" : belote;
 
   const preview = computeScore({
     taker,
     contract,
     takerPoints: effectiveTakerPoints,
-    belote,
+    belote: effectiveBelote,
     coinche,
   });
 
@@ -71,7 +73,7 @@ export default function HandEditor({
       suit,
       contract,
       takerPoints: effectiveTakerPoints,
-      belote,
+      belote: effectiveBelote,
       coinche,
       scoreA: preview.scoreA,
       scoreB: preview.scoreB,
@@ -139,21 +141,16 @@ export default function HandEditor({
               type="button"
               onClick={() => {
                 setContract(c);
-                if (c === CAPOT_CONTRACT || c === GENERALE_CONTRACT) {
-                  setCoinche("none");
-                }
+                if (checkAllTricks(c)) setCoinche("none");
+                if (checkBelotAnnounced(c)) setBelote("none");
               }}
-              className={`rounded-lg border py-2 text-sm font-semibold transition ${
+              className={`rounded-lg border py-2 text-xs font-semibold transition ${
                 contract === c
                   ? "border-gold-500 bg-gold-500 text-felt-950"
                   : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
               }`}
             >
-              {c === CAPOT_CONTRACT
-                ? "Cap"
-                : c === GENERALE_CONTRACT
-                  ? "Gén"
-                  : c}
+              {contractShortLabel(c)}
             </button>
           ))}
         </div>
@@ -188,24 +185,30 @@ export default function HandEditor({
         </Section>
       )}
 
-      <Section label="Belote / rebelote">
-        <div className="grid grid-cols-3 gap-2">
-          {(["none", "A", "B"] as const).map((b) => (
-            <button
-              key={b}
-              type="button"
-              onClick={() => setBelote(b)}
-              className={`rounded-lg border px-2 py-2 text-xs font-semibold transition ${
-                belote === b
-                  ? "border-gold-500 bg-gold-500 text-felt-950"
-                  : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
-              }`}
-            >
-              {b === "none" ? "Aucune" : b === "A" ? teamA : teamB}
-            </button>
-          ))}
+      {belotAnnounced ? (
+        <div className="mb-4 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200">
+          Belote annoncée dans le contrat (+40 déjà inclus dans le score).
         </div>
-      </Section>
+      ) : (
+        <Section label="Belote / rebelote">
+          <div className="grid grid-cols-3 gap-2">
+            {(["none", "A", "B"] as const).map((b) => (
+              <button
+                key={b}
+                type="button"
+                onClick={() => setBelote(b)}
+                className={`rounded-lg border px-2 py-2 text-xs font-semibold transition ${
+                  belote === b
+                    ? "border-gold-500 bg-gold-500 text-felt-950"
+                    : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+                }`}
+              >
+                {b === "none" ? "Aucune" : b === "A" ? teamA : teamB}
+              </button>
+            ))}
+          </div>
+        </Section>
+      )}
 
       {!isAllTricksContract && (
         <Section label="Coinche">

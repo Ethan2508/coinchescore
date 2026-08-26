@@ -67,6 +67,23 @@ function CoincheRules() {
         couleur d’atout (♠ ♥ ♦ ♣, sans atout ou tout atout).
       </Section>
 
+      <Section title="Capot / Générale bellotés">
+        Variantes annoncées avec la belote-rebelote (R+D d’atout dans la main
+        du preneur)&nbsp;:
+        <ul className="mt-1 list-disc space-y-1 pl-5">
+          <li>
+            <strong>Capot belloté</strong> réussi&nbsp;: 540 pts.
+          </li>
+          <li>
+            <strong>Générale bellotée</strong> réussie&nbsp;: 540 pts.
+          </li>
+          <li>
+            Belote naturelle sur un Capot / Générale non annoncé&nbsp;: 500 +
+            20 = 520 pts.
+          </li>
+        </ul>
+      </Section>
+
       <Section title="Points d’une manche">
         Total de <strong>160 points</strong> répartis entre les 2 équipes
         (arrondi aux dizaines à la table). À l’atout, les cartes valent
