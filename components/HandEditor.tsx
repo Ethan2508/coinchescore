@@ -137,7 +137,12 @@ export default function HandEditor({
             <button
               key={c}
               type="button"
-              onClick={() => setContract(c)}
+              onClick={() => {
+                setContract(c);
+                if (c === CAPOT_CONTRACT || c === GENERALE_CONTRACT) {
+                  setCoinche("none");
+                }
+              }}
               className={`rounded-lg border py-2 text-sm font-semibold transition ${
                 contract === c
                   ? "border-gold-500 bg-gold-500 text-felt-950"
@@ -202,24 +207,26 @@ export default function HandEditor({
         </div>
       </Section>
 
-      <Section label="Coinche">
-        <div className="grid grid-cols-3 gap-2">
-          {(["none", "coinche", "surcoinche"] as CoincheLevel[]).map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setCoinche(c)}
-              className={`rounded-lg border px-2 py-2 text-xs font-semibold capitalize transition ${
-                coinche === c
-                  ? "border-gold-500 bg-gold-500 text-felt-950"
-                  : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
-              }`}
-            >
-              {c === "none" ? "Aucune" : c}
-            </button>
-          ))}
-        </div>
-      </Section>
+      {!isAllTricksContract && (
+        <Section label="Coinche">
+          <div className="grid grid-cols-3 gap-2">
+            {(["none", "coinche", "surcoinche"] as CoincheLevel[]).map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setCoinche(c)}
+                className={`rounded-lg border px-2 py-2 text-xs font-semibold capitalize transition ${
+                  coinche === c
+                    ? "border-gold-500 bg-gold-500 text-felt-950"
+                    : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+                }`}
+              >
+                {c === "none" ? "Aucune" : c}
+              </button>
+            ))}
+          </div>
+        </Section>
+      )}
 
       <div className="my-4 rounded-2xl border border-white/10 bg-black/30 p-4">
         <div className="mb-2 flex items-center justify-between">

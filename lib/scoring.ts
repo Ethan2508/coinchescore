@@ -37,7 +37,10 @@ function multiplier(c: CoincheLevel): number {
 export function computeScore(input: ScoreInput): ScoreResult {
   const takerPts = clamp(input.takerPoints, 0, HAND_TOTAL);
   const defensePts = HAND_TOTAL - takerPts;
-  const mult = multiplier(input.coinche);
+  const isAllTricksContract =
+    input.contract === CAPOT_CONTRACT ||
+    input.contract === GENERALE_CONTRACT;
+  const mult = isAllTricksContract ? 1 : multiplier(input.coinche);
   const capot = takerPts === HAND_TOTAL;
 
   let takerScore = 0;
