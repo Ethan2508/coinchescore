@@ -115,7 +115,10 @@ function CoincheRules() {
           </li>
           <li>
             <strong>Belote / Rebelote</strong> (R+D d’atout dans une même
-            main)&nbsp;: +20 pour l’équipe qui les a.
+            main)&nbsp;: +20 pour l’équipe qui les a. Elle compte aussi pour
+            valider le contrat, <strong>sauf</strong> si la défense fait
+            autant ou plus de points que le preneur (aux dizaines) — dans ce
+            cas, la belote ne sauve pas la chute.
           </li>
           <li>
             <strong>Coinche</strong> ×2, <strong>Surcoinche</strong> ×4 sur le

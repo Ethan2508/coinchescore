@@ -97,13 +97,19 @@ export function computeScore(input: ScoreInput): ScoreResult {
       chute = true;
       defenseScore = 160 + CAPOT_CONTRACT;
     }
-  } else if (takerPts >= input.contract) {
-    takerScore = input.contract + takerPts;
-    defenseScore = defensePts;
-    if (capot) takerScore += 90;
   } else {
-    chute = true;
-    defenseScore = 160 + input.contract;
+    const belotHelpsTaker =
+      input.belote === input.taker && takerPts > defensePts;
+    const effectiveTakerForContract =
+      takerPts + (belotHelpsTaker ? 20 : 0);
+    if (effectiveTakerForContract >= input.contract) {
+      takerScore = input.contract + takerPts;
+      defenseScore = defensePts;
+      if (capot) takerScore += 90;
+    } else {
+      chute = true;
+      defenseScore = 160 + input.contract;
+    }
   }
 
   takerScore *= mult;
