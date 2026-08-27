@@ -29,3 +29,7 @@ android/app/src/main/assets/public
 # Capacitor generated config
 ios/App/App/capacitor.config.json
 android/app/src/main/assets/capacitor.config.json
+
+# Android release signing (KEEP BACKUPS OUTSIDE REPO)
+android/app/coinchescore-release.keystore
+android/app/keystore.properties
