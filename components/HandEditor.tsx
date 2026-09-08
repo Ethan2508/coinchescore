@@ -53,11 +53,19 @@ export default function HandEditor({
   const [coinche, setCoinche] = useState<CoincheLevel>(
     initial?.coinche ?? "none",
   );
+  const [allTricksMade, setAllTricksMade] = useState<boolean>(
+    initial ? !initial.chute : true,
+  );
 
   const isAllTricksContract = checkAllTricks(contract);
   const belotAnnounced = checkBelotAnnounced(contract);
-  const effectiveTakerPoints = isAllTricksContract ? HAND_TOTAL : takerPoints;
-  const effectiveBelote = belotAnnounced ? "none" : belote;
+  const effectiveTakerPoints = isAllTricksContract
+    ? allTricksMade
+      ? HAND_TOTAL
+      : 0
+    : takerPoints;
+  const beloteIncludedInContract = belotAnnounced && allTricksMade;
+  const effectiveBelote = beloteIncludedInContract ? "none" : belote;
 
   const preview = computeScore({
     taker,
@@ -156,6 +164,35 @@ export default function HandEditor({
         </div>
       </Section>
 
+      {isAllTricksContract && (
+        <Section label="Résultat">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setAllTricksMade(true)}
+              className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
+                allTricksMade
+                  ? "border-gold-500 bg-gold-500 text-felt-950"
+                  : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+              }`}
+            >
+              Réussi
+            </button>
+            <button
+              type="button"
+              onClick={() => setAllTricksMade(false)}
+              className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
+                !allTricksMade
+                  ? "border-red-500 bg-red-500/20 text-red-300"
+                  : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+              }`}
+            >
+              Chuté
+            </button>
+          </div>
+        </Section>
+      )}
+
       {!isAllTricksContract && (
         <Section label={`Points du preneur : ${takerPoints} / ${HAND_TOTAL}`}>
           <input
@@ -185,7 +222,7 @@ export default function HandEditor({
         </Section>
       )}
 
-      {belotAnnounced ? (
+      {beloteIncludedInContract ? (
         <div className="mb-4 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200">
           Belote annoncée dans le contrat (+40 déjà inclus dans le score).
         </div>
