@@ -77,20 +77,23 @@ export function computeScore(input: ScoreInput): ScoreResult {
   let takerScore = 0;
   let defenseScore = 0;
   let chute = false;
+  let beloteAlreadyIncluded = false;
 
   if (isGeneraleFamily(input.contract)) {
     if (capot) {
       takerScore = belotAnnounced ? 540 : 500;
+      beloteAlreadyIncluded = belotAnnounced;
     } else {
       chute = true;
-      defenseScore = 160 + GENERALE_CONTRACT;
+      defenseScore = 500;
     }
   } else if (isCapotFamily(input.contract)) {
     if (capot) {
       takerScore = belotAnnounced ? 540 : 500;
+      beloteAlreadyIncluded = belotAnnounced;
     } else {
       chute = true;
-      defenseScore = 160 + CAPOT_CONTRACT;
+      defenseScore = 500;
     }
   } else {
     const belotHelpsTaker =
@@ -119,7 +122,7 @@ export function computeScore(input: ScoreInput): ScoreResult {
     }
   }
 
-  if (input.belote !== "none" && !belotAnnounced) {
+  if (input.belote !== "none" && !beloteAlreadyIncluded) {
     if (input.belote === input.taker) takerScore += 20;
     else defenseScore += 20;
   }

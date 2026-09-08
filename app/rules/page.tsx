@@ -114,6 +114,11 @@ function CoincheRules() {
             preneur.
           </li>
           <li>
+            <strong>Capot annoncé et chuté</strong>&nbsp;: 500 pts pour la
+            défense (même valeur que si le preneur avait réussi). Idem pour la{" "}
+            <strong>Générale</strong>.
+          </li>
+          <li>
             <strong>Belote / Rebelote</strong> (R+D d’atout dans une même
             main)&nbsp;: +20 pour l’équipe qui les a. Elle compte aussi pour
             valider le contrat, <strong>sauf</strong> si la défense fait
