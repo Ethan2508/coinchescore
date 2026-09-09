@@ -161,12 +161,16 @@ function HistoryInner() {
                     const p = selected.players?.find(
                       (pl) => pl.id === entry.playerId,
                     );
+                    const label = entry.coinche
+                      ? entry.coinche === "surcoinche"
+                        ? "surcoinche"
+                        : "coinche"
+                      : entry.pass
+                        ? "passe"
+                        : contractShortLabel(entry.contract!);
                     return (
                       <span key={bi}>
-                        {p?.name}:{" "}
-                        {entry.pass
-                          ? "passe"
-                          : contractShortLabel(entry.contract!)}
+                        {p?.name}: {label}
                         {bi < h.bidding!.length - 1 ? " ·" : ""}
                       </span>
                     );

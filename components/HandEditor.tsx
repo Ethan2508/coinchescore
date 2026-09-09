@@ -85,7 +85,11 @@ export default function HandEditor({
     setTakerPlayerId(p.id);
   };
 
-  const handleBiddingDone = (log: BidEntry[], last: BidEntry | null) => {
+  const handleBiddingDone = (
+    log: BidEntry[],
+    last: BidEntry | null,
+    resolvedCoinche: CoincheLevel,
+  ) => {
     if (!last) {
       onClose();
       return;
@@ -96,6 +100,7 @@ export default function HandEditor({
     setTakerPlayerId(player.id);
     setSuit(last.suit!);
     setContract(last.contract!);
+    setCoinche(resolvedCoinche);
     setBiddingMode(false);
   };
 
@@ -171,9 +176,16 @@ export default function HandEditor({
           <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-xs text-blue-200">
             {bidding.map((entry, i) => {
               const p = players?.find((pl) => pl.id === entry.playerId);
+              const label = entry.coinche
+                ? entry.coinche === "surcoinche"
+                  ? "surcoinche"
+                  : "coinche"
+                : entry.pass
+                  ? "passe"
+                  : contractShortLabel(entry.contract!);
               return (
                 <span key={i}>
-                  {p?.name}: {entry.pass ? "passe" : contractShortLabel(entry.contract!)}
+                  {p?.name}: {label}
                   {i < bidding.length - 1 ? " ·" : ""}
                 </span>
               );

@@ -23,6 +23,8 @@ export interface BidEntry {
   pass: boolean;
   suit?: Suit;
   contract?: number;
+  /** Set when this entry is a "coinche"/"surcoinche" reaction rather than a bid or a plain pass. */
+  coinche?: "coinche" | "surcoinche";
 }
 
 export interface Hand {
