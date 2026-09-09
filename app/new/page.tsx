@@ -20,6 +20,7 @@ export default function NewGamePage() {
 
   const [teamA, setTeamA] = useState("Nous");
   const [teamB, setTeamB] = useState("Eux");
+  const [teamsCustomized, setTeamsCustomized] = useState(false);
   const [target, setTarget] = useState(1000);
   const [showPlayers, setShowPlayers] = useState(false);
   const [playerNames, setPlayerNames] = useState<string[]>([
@@ -33,11 +34,7 @@ export default function NewGamePage() {
     setPlayerNames((names) => {
       const next = [...names];
       next[i] = value;
-      if (
-        next.filter((n) => n.trim()).length === 4 &&
-        teamA === "Nous" &&
-        teamB === "Eux"
-      ) {
+      if (!teamsCustomized && next.every((n) => n.trim())) {
         setTeamA(`${next[0].trim()} & ${next[2].trim()}`);
         setTeamB(`${next[1].trim()} & ${next[3].trim()}`);
       }
@@ -73,7 +70,10 @@ export default function NewGamePage() {
             <input
               type="text"
               value={teamA}
-              onChange={(e) => setTeamA(e.target.value)}
+              onChange={(e) => {
+                setTeamA(e.target.value);
+                setTeamsCustomized(true);
+              }}
               maxLength={20}
               className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-base text-white outline-none focus:border-gold-500"
             />
@@ -83,7 +83,10 @@ export default function NewGamePage() {
             <input
               type="text"
               value={teamB}
-              onChange={(e) => setTeamB(e.target.value)}
+              onChange={(e) => {
+                setTeamB(e.target.value);
+                setTeamsCustomized(true);
+              }}
               maxLength={20}
               className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-base text-white outline-none focus:border-gold-500"
             />
