@@ -207,6 +207,7 @@ export default function GamePage() {
         teamA={current.teamA}
         teamB={current.teamB}
         players={current.players}
+        dealerSeat={current.dealerSeat}
         handIndex={
           editingHand
             ? current.hands.findIndex((h) => h.id === editingHand.id) + 1

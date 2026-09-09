@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import BiddingRound from "./BiddingRound";
 import Modal from "./Modal";
 import { computeScore } from "@/lib/store";
 import {
@@ -12,10 +13,12 @@ import {
   isAllTricksContract as checkAllTricks,
   isBelotAnnounced as checkBelotAnnounced,
 } from "@/lib/scoring";
+import { firstToBidSeat } from "@/lib/players";
 import {
   SUITS,
   SUIT_COLOR,
   SUIT_SYMBOL,
+  type BidEntry,
   type CoincheLevel,
   type Hand,
   type Player,
@@ -29,6 +32,7 @@ interface Props {
   teamA: string;
   teamB: string;
   players?: Player[];
+  dealerSeat?: number;
   handIndex: number;
   initial?: Hand;
   onSubmit: (hand: Omit<Hand, "id" | "createdAt">) => void;
@@ -47,11 +51,16 @@ export default function HandEditor({
   teamA,
   teamB,
   players,
+  dealerSeat,
   handIndex,
   initial,
   onSubmit,
 }: Props) {
   const hasPlayers = !!players && players.length === 4;
+  const [biddingMode, setBiddingMode] = useState(false);
+  const [bidding, setBidding] = useState<BidEntry[] | undefined>(
+    initial?.bidding,
+  );
   const [taker, setTaker] = useState<TeamId>(initial?.taker ?? "A");
   const [takerPlayerId, setTakerPlayerId] = useState<string | undefined>(
     initial?.takerPlayerId ?? (hasPlayers ? players![0].id : undefined),
@@ -74,6 +83,20 @@ export default function HandEditor({
   const selectPlayer = (p: Player) => {
     setTaker(p.team);
     setTakerPlayerId(p.id);
+  };
+
+  const handleBiddingDone = (log: BidEntry[], last: BidEntry | null) => {
+    if (!last) {
+      onClose();
+      return;
+    }
+    const player = players!.find((p) => p.id === last.playerId)!;
+    setBidding(log);
+    setTaker(player.team);
+    setTakerPlayerId(player.id);
+    setSuit(last.suit!);
+    setContract(last.contract!);
+    setBiddingMode(false);
   };
 
   const isAllTricksContract = checkAllTricks(contract);
@@ -107,9 +130,22 @@ export default function HandEditor({
       scoreB: preview.scoreB,
       chute: preview.chute,
       capot: preview.capot,
+      bidding,
     });
     onClose();
   };
+
+  if (open && hasPlayers && biddingMode) {
+    return (
+      <Modal open onClose={onClose} title="Enchères">
+        <BiddingRound
+          players={players!}
+          startSeat={firstToBidSeat(dealerSeat ?? 0)}
+          onDone={handleBiddingDone}
+        />
+      </Modal>
+    );
+  }
 
   return (
     <Modal
@@ -117,6 +153,35 @@ export default function HandEditor({
       onClose={onClose}
       title={initial ? `Modifier manche ${handIndex}` : `Manche ${handIndex}`}
     >
+      {hasPlayers && !initial && !bidding && (
+        <button
+          type="button"
+          onClick={() => setBiddingMode(true)}
+          className="mb-4 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/10"
+        >
+          🗣️ Enregistrer les enchères en détail
+        </button>
+      )}
+
+      {bidding && (
+        <div className="mb-4 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3">
+          <div className="mb-1 text-[10px] uppercase tracking-wider text-blue-300">
+            Enchères enregistrées
+          </div>
+          <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-xs text-blue-200">
+            {bidding.map((entry, i) => {
+              const p = players?.find((pl) => pl.id === entry.playerId);
+              return (
+                <span key={i}>
+                  {p?.name}: {entry.pass ? "passe" : contractShortLabel(entry.contract!)}
+                  {i < bidding.length - 1 ? " ·" : ""}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <Section label="Preneur">
         {hasPlayers ? (
           <div className="grid grid-cols-3 grid-rows-3 place-items-center gap-2">

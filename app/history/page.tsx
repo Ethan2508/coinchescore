@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import HeaderBar from "@/components/HeaderBar";
+import { playerLabel } from "@/lib/players";
 import { useStore } from "@/lib/store";
-import { contractLabel } from "@/lib/scoring";
+import { contractLabel, contractShortLabel } from "@/lib/scoring";
 import { SUIT_COLOR, SUIT_SYMBOL } from "@/lib/types";
 
 const dtf = new Intl.DateTimeFormat("fr-FR", {
@@ -112,7 +113,13 @@ function HistoryInner() {
                   {SUIT_SYMBOL[h.suit]}
                 </span>
                 <span className="font-semibold">
-                  {h.taker === "A" ? selected.teamA : selected.teamB}
+                  {playerLabel(
+                    selected.players,
+                    h.takerPlayerId,
+                    selected.teamA,
+                    selected.teamB,
+                    h.taker,
+                  )}
                 </span>
                 <span>·</span>
                 <span>{contractLabel(h.contract)}</span>
@@ -148,6 +155,24 @@ function HistoryInner() {
                   <span className="text-gold-400">+{h.scoreB}</span>
                 </span>
               </div>
+              {h.bidding && h.bidding.length > 0 && (
+                <div className="ml-9 mt-1.5 flex flex-wrap gap-x-1.5 gap-y-0.5 text-[11px] text-white/40">
+                  {h.bidding.map((entry, bi) => {
+                    const p = selected.players?.find(
+                      (pl) => pl.id === entry.playerId,
+                    );
+                    return (
+                      <span key={bi}>
+                        {p?.name}:{" "}
+                        {entry.pass
+                          ? "passe"
+                          : contractShortLabel(entry.contract!)}
+                        {bi < h.bidding!.length - 1 ? " ·" : ""}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
             </li>
           ))}
         </ul>

@@ -18,6 +18,13 @@ export interface Player {
   team: TeamId;
 }
 
+export interface BidEntry {
+  playerId: string;
+  pass: boolean;
+  suit?: Suit;
+  contract?: number;
+}
+
 export interface Hand {
   id: string;
   taker: TeamId;
@@ -32,6 +39,7 @@ export interface Hand {
   chute: boolean;
   capot: boolean;
   createdAt: number;
+  bidding?: BidEntry[];
 }
 
 export interface Game {
