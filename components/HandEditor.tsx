@@ -18,6 +18,7 @@ import {
   SUIT_SYMBOL,
   type CoincheLevel,
   type Hand,
+  type Player,
   type Suit,
   type TeamId,
 } from "@/lib/types";
@@ -27,21 +28,34 @@ interface Props {
   onClose: () => void;
   teamA: string;
   teamB: string;
+  players?: Player[];
   handIndex: number;
   initial?: Hand;
   onSubmit: (hand: Omit<Hand, "id" | "createdAt">) => void;
 }
+
+const SEAT_GRID = [
+  "col-start-2 row-start-1",
+  "col-start-3 row-start-2",
+  "col-start-2 row-start-3",
+  "col-start-1 row-start-2",
+];
 
 export default function HandEditor({
   open,
   onClose,
   teamA,
   teamB,
+  players,
   handIndex,
   initial,
   onSubmit,
 }: Props) {
+  const hasPlayers = !!players && players.length === 4;
   const [taker, setTaker] = useState<TeamId>(initial?.taker ?? "A");
+  const [takerPlayerId, setTakerPlayerId] = useState<string | undefined>(
+    initial?.takerPlayerId ?? (hasPlayers ? players![0].id : undefined),
+  );
   const [suit, setSuit] = useState<Suit>(initial?.suit ?? "pique");
   const [contract, setContract] = useState<number>(initial?.contract ?? 80);
   const [takerPoints, setTakerPoints] = useState<number>(
@@ -56,6 +70,11 @@ export default function HandEditor({
   const [allTricksMade, setAllTricksMade] = useState<boolean>(
     initial ? !initial.chute : true,
   );
+
+  const selectPlayer = (p: Player) => {
+    setTaker(p.team);
+    setTakerPlayerId(p.id);
+  };
 
   const isAllTricksContract = checkAllTricks(contract);
   const belotAnnounced = checkBelotAnnounced(contract);
@@ -78,6 +97,7 @@ export default function HandEditor({
   const submit = () => {
     onSubmit({
       taker,
+      takerPlayerId: hasPlayers ? takerPlayerId : undefined,
       suit,
       contract,
       takerPoints: effectiveTakerPoints,
@@ -98,22 +118,41 @@ export default function HandEditor({
       title={initial ? `Modifier manche ${handIndex}` : `Manche ${handIndex}`}
     >
       <Section label="Preneur">
-        <div className="grid grid-cols-2 gap-2">
-          {(["A", "B"] as TeamId[]).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTaker(t)}
-              className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
-                taker === t
-                  ? "border-gold-500 bg-gold-500 text-felt-950"
-                  : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
-              }`}
-            >
-              {t === "A" ? teamA : teamB}
-            </button>
-          ))}
-        </div>
+        {hasPlayers ? (
+          <div className="grid grid-cols-3 grid-rows-3 place-items-center gap-2">
+            {players!.map((p, i) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => selectPlayer(p)}
+                className={`${SEAT_GRID[i]} flex h-16 w-16 items-center justify-center rounded-full border-2 px-1 text-center text-xs font-semibold transition ${
+                  takerPlayerId === p.id
+                    ? "border-gold-500 bg-gold-500 text-felt-950"
+                    : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+                }`}
+              >
+                <span className="line-clamp-2 leading-tight">{p.name}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            {(["A", "B"] as TeamId[]).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTaker(t)}
+                className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
+                  taker === t
+                    ? "border-gold-500 bg-gold-500 text-felt-950"
+                    : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+                }`}
+              >
+                {t === "A" ? teamA : teamB}
+              </button>
+            ))}
+          </div>
+        )}
       </Section>
 
       <Section label="Atout">

@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import DealerWheel from "@/components/DealerWheel";
 import HandEditor from "@/components/HandEditor";
 import HeaderBar from "@/components/HeaderBar";
+import Modal from "@/components/Modal";
+import { hasPlayers, playerAtSeat, playerLabel } from "@/lib/players";
 import { totalScores, useStore } from "@/lib/store";
 import { contractLabel } from "@/lib/scoring";
-import { SUIT_COLOR, SUIT_SYMBOL, type Hand } from "@/lib/types";
+import { SUIT_COLOR, SUIT_SYMBOL, type Hand, type Player } from "@/lib/types";
 
 export default function GamePage() {
   const router = useRouter();
@@ -20,6 +23,7 @@ export default function GamePage() {
     undoLast,
     finishAndArchive,
     setTeamName,
+    setDealerSeat,
   } = useStore();
 
   const [editorOpen, setEditorOpen] = useState(false);
@@ -47,6 +51,12 @@ export default function GamePage() {
   const pctA = Math.min(100, (totals.a / current.target) * 100);
   const pctB = Math.min(100, (totals.b / current.target) * 100);
   const winner = current.winner;
+  const showDealerWheel =
+    hasPlayers(current.players) && current.dealerSeat === undefined;
+  const dealer =
+    hasPlayers(current.players) && current.dealerSeat !== undefined
+      ? playerAtSeat(current.players, current.dealerSeat)
+      : undefined;
 
   const openNewHand = () => {
     setEditingHand(undefined);
@@ -108,6 +118,14 @@ export default function GamePage() {
         />
       </section>
 
+      {dealer && (
+        <div className="mb-4 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-center text-sm">
+          <span className="text-lg">🂠</span>{" "}
+          <span className="font-semibold text-white">{dealer.name}</span>{" "}
+          <span className="text-white/60">distribue</span>
+        </div>
+      )}
+
       {winner && (
         <div className="mb-4 rounded-2xl border border-gold-500 bg-gold-500/15 p-4 text-center">
           <div className="text-xs uppercase tracking-wider text-gold-400">
@@ -157,6 +175,7 @@ export default function GamePage() {
                   index={index}
                   teamA={current.teamA}
                   teamB={current.teamB}
+                  players={current.players}
                   onEdit={() => openEditHand(h)}
                   onDelete={() => deleteHand(h.id)}
                 />
@@ -187,6 +206,7 @@ export default function GamePage() {
         onClose={() => setEditorOpen(false)}
         teamA={current.teamA}
         teamB={current.teamB}
+        players={current.players}
         handIndex={
           editingHand
             ? current.hands.findIndex((h) => h.id === editingHand.id) + 1
@@ -195,6 +215,20 @@ export default function GamePage() {
         initial={editingHand}
         onSubmit={handleSubmit}
       />
+
+      {showDealerWheel && current.players && (
+        <Modal
+          open
+          onClose={() => {}}
+          title="Qui distribue en premier ?"
+          hideClose
+        >
+          <DealerWheel
+            players={current.players}
+            onResult={(seat) => setDealerSeat(seat)}
+          />
+        </Modal>
+      )}
 
       {menuOpen && (
         <div
@@ -321,6 +355,7 @@ function HandRow({
   index,
   teamA,
   teamB,
+  players,
   onEdit,
   onDelete,
 }: {
@@ -328,6 +363,7 @@ function HandRow({
   index: number;
   teamA: string;
   teamB: string;
+  players?: Player[];
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -351,7 +387,7 @@ function HandRow({
             {SUIT_SYMBOL[hand.suit]}
           </span>
           <span className="font-semibold">
-            {hand.taker === "A" ? teamA : teamB}
+            {playerLabel(players, hand.takerPlayerId, teamA, teamB, hand.taker)}
           </span>
           <span>·</span>
           <span>{contractLabel(hand.contract)}</span>

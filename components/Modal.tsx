@@ -7,11 +7,18 @@ interface Props {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  hideClose?: boolean;
 }
 
-export default function Modal({ open, onClose, title, children }: Props) {
+export default function Modal({
+  open,
+  onClose,
+  title,
+  children,
+  hideClose,
+}: Props) {
   useEffect(() => {
-    if (!open) return;
+    if (!open || hideClose) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
@@ -21,14 +28,14 @@ export default function Modal({ open, onClose, title, children }: Props) {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [open, onClose]);
+  }, [open, onClose, hideClose]);
 
   if (!open) return null;
 
   return (
     <div
       className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center"
-      onClick={onClose}
+      onClick={hideClose ? undefined : onClose}
     >
       <div
         className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-felt-900 shadow-2xl sm:rounded-3xl"
@@ -39,14 +46,16 @@ export default function Modal({ open, onClose, title, children }: Props) {
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-felt-900/95 px-5 py-4 backdrop-blur">
           <h2 className="font-display text-xl font-bold">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fermer"
-            className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/70 hover:bg-white/10"
-          >
-            Fermer
-          </button>
+          {!hideClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fermer"
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/70 hover:bg-white/10"
+            >
+              Fermer
+            </button>
+          )}
         </div>
         <div className="px-5 py-4">{children}</div>
       </div>

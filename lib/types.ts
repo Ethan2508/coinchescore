@@ -10,9 +10,18 @@ export type TeamId = "A" | "B";
 
 export type CoincheLevel = "none" | "coinche" | "surcoinche";
 
+/** Seat 0 and 2 are partners (team A), seat 1 and 3 are partners (team B). Seating order is clockwise. */
+export interface Player {
+  id: string;
+  name: string;
+  seat: 0 | 1 | 2 | 3;
+  team: TeamId;
+}
+
 export interface Hand {
   id: string;
   taker: TeamId;
+  takerPlayerId?: string;
   suit: Suit;
   contract: number;
   takerPoints: number;
@@ -34,6 +43,8 @@ export interface Game {
   createdAt: number;
   finishedAt?: number;
   winner?: TeamId;
+  players?: Player[];
+  dealerSeat?: number;
 }
 
 export const SUITS: Suit[] = [

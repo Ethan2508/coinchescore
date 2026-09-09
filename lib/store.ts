@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { nextDealerSeat } from "./players";
 import { computeScore, detectWinner, totalScores } from "./scoring";
-import type { Game, Hand, TeamId } from "./types";
+import type { Game, Hand, Player, TeamId } from "./types";
 
 const CURRENT_KEY = "coinchescore:current";
 const HISTORY_KEY = "coinchescore:history";
@@ -109,7 +110,12 @@ export function useStore() {
   }, [store.history, store.ready]);
 
   const startGame = useCallback(
-    (opts: { teamA: string; teamB: string; target: number }) => {
+    (opts: {
+      teamA: string;
+      teamB: string;
+      target: number;
+      players?: Player[];
+    }) => {
       const g: Game = {
         id: crypto.randomUUID(),
         teamA: opts.teamA.trim() || "Nous",
@@ -117,6 +123,7 @@ export function useStore() {
         target: opts.target,
         hands: [],
         createdAt: Date.now(),
+        players: opts.players,
       };
       setStore((s) => ({ ...s, current: g }));
       haptic([15, 40, 15]);
@@ -153,6 +160,10 @@ export function useStore() {
       const updated = recomputeWinner({
         ...s.current,
         hands: [...s.current.hands, newHand],
+        dealerSeat:
+          s.current.dealerSeat !== undefined
+            ? nextDealerSeat(s.current.dealerSeat)
+            : undefined,
       });
       return { ...s, current: updated };
     });
@@ -213,6 +224,14 @@ export function useStore() {
     });
   }, []);
 
+  const setDealerSeat = useCallback((seat: number) => {
+    setStore((s) => {
+      if (!s.current) return s;
+      return { ...s, current: { ...s.current, dealerSeat: seat } };
+    });
+    haptic([10, 30, 10, 30, 20]);
+  }, []);
+
   const clearHistory = useCallback(() => {
     setStore((s) => ({ ...s, history: [] }));
   }, []);
@@ -229,6 +248,7 @@ export function useStore() {
     deleteHand,
     undoLast,
     setTeamName,
+    setDealerSeat,
     clearHistory,
   };
 }

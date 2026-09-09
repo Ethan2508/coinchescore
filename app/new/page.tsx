@@ -3,9 +3,16 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import HeaderBar from "@/components/HeaderBar";
+import { makePlayers } from "@/lib/players";
 import { useStore } from "@/lib/store";
 
 const PRESETS = [500, 1000, 1500, 2000, 3000];
+const SEAT_POSITIONS = [
+  { label: "Nord", grid: "col-start-2 row-start-1" },
+  { label: "Est", grid: "col-start-3 row-start-2" },
+  { label: "Sud", grid: "col-start-2 row-start-3" },
+  { label: "Ouest", grid: "col-start-1 row-start-2" },
+] as const;
 
 export default function NewGamePage() {
   const router = useRouter();
@@ -14,12 +21,41 @@ export default function NewGamePage() {
   const [teamA, setTeamA] = useState("Nous");
   const [teamB, setTeamB] = useState("Eux");
   const [target, setTarget] = useState(1000);
+  const [showPlayers, setShowPlayers] = useState(false);
+  const [playerNames, setPlayerNames] = useState<string[]>([
+    "",
+    "",
+    "",
+    "",
+  ]);
+
+  const setPlayerName = (i: number, value: string) => {
+    setPlayerNames((names) => {
+      const next = [...names];
+      next[i] = value;
+      if (
+        next.filter((n) => n.trim()).length === 4 &&
+        teamA === "Nous" &&
+        teamB === "Eux"
+      ) {
+        setTeamA(`${next[0].trim()} & ${next[2].trim()}`);
+        setTeamB(`${next[1].trim()} & ${next[3].trim()}`);
+      }
+      return next;
+    });
+  };
+
+  const filledPlayers = playerNames.filter((n) => n.trim()).length;
 
   const submit = () => {
     if (current && current.hands.length > 0) {
       finishAndArchive();
     }
-    startGame({ teamA, teamB, target });
+    const players =
+      filledPlayers === 4
+        ? makePlayers(playerNames as [string, string, string, string])
+        : undefined;
+    startGame({ teamA, teamB, target, players });
     router.push("/game");
   };
 
@@ -53,6 +89,53 @@ export default function NewGamePage() {
             />
           </label>
         </div>
+      </section>
+
+      <section className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-5">
+        <button
+          type="button"
+          onClick={() => setShowPlayers((s) => !s)}
+          className="flex w-full items-center justify-between"
+        >
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-white/60">
+            Joueurs (optionnel)
+          </h2>
+          <span className="text-xs text-white/40">
+            {showPlayers ? "Masquer" : filledPlayers > 0 ? `${filledPlayers}/4` : "Ajouter"}
+          </span>
+        </button>
+
+        {showPlayers && (
+          <div className="mt-4">
+            <p className="mb-3 text-xs text-white/50">
+              Places autour de la table, dans le sens des aiguilles d&apos;une
+              montre. Nord/Sud et Est/Ouest forment chacun une équipe.
+            </p>
+            <div className="grid grid-cols-3 grid-rows-3 gap-2">
+              {SEAT_POSITIONS.map((pos, i) => (
+                <div key={pos.label} className={pos.grid}>
+                  <label className="flex flex-col gap-1 text-[10px] text-white/50">
+                    {pos.label}
+                    <input
+                      type="text"
+                      value={playerNames[i]}
+                      onChange={(e) => setPlayerName(i, e.target.value)}
+                      maxLength={16}
+                      placeholder={`Joueur ${i + 1}`}
+                      className="rounded-lg border border-white/10 bg-black/20 px-2 py-1.5 text-center text-sm text-white outline-none placeholder:text-white/20 focus:border-gold-500"
+                    />
+                  </label>
+                </div>
+              ))}
+            </div>
+            {filledPlayers > 0 && filledPlayers < 4 && (
+              <p className="mt-3 text-xs text-yellow-300/80">
+                Remplis les 4 places pour activer la roue du donneur et le
+                suivi individuel.
+              </p>
+            )}
+          </div>
+        )}
       </section>
 
       <section className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-5">
