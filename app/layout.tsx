@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import LiveUpdateReady from "@/components/LiveUpdateReady";
+import LiveUpdates from "@/components/LiveUpdates";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className="min-h-full">
-        <LiveUpdateReady />
+        <LiveUpdates />
         {children}
       </body>
     </html>

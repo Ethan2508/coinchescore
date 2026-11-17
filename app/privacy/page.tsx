@@ -21,9 +21,9 @@ export default function PrivacyPage() {
             des parties) sont stockées{" "}
             <strong>uniquement sur votre appareil</strong>. Nous
             n&apos;utilisons ni compte utilisateur, ni publicité, ni tracking.
-            Seule l&apos;application mobile contacte un serveur, pour vérifier
-            si une nouvelle version de son contenu est disponible (voir
-            ci-dessous).
+            Seule l&apos;application mobile se connecte à internet, pour
+            vérifier si une nouvelle version de son contenu est disponible
+            (voir ci-dessous).
           </p>
         </Section>
 
@@ -58,19 +58,17 @@ export default function PrivacyPage() {
         <Section title="Mises à jour de l'application mobile">
           <p>
             Pour recevoir rapidement les corrections et améliorations,
-            l&apos;application iOS / Android vérifie à son ouverture, auprès
-            de notre prestataire <strong>Capgo</strong>, si une nouvelle
-            version de son contenu est disponible, puis la télécharge.
+            l&apos;application iOS / Android consulte à son ouverture un
+            fichier public hébergé sur <strong>GitHub</strong>, qui indique la
+            dernière version de son contenu, puis la télécharge si besoin.
           </p>
           <p>
-            Cette vérification transmet uniquement des informations
-            techniques&nbsp;: un identifiant aléatoire propre à
-            l&apos;installation (non lié à votre identité), la version de
-            l&apos;application et le système (iOS ou Android et sa version).{" "}
-            <strong>Aucune donnée de jeu</strong> (noms, scores, historique)
-            n&apos;est transmise, et aucune statistique d&apos;utilisation
-            n&apos;est envoyée. La version web n&apos;effectue pas cette
-            vérification.
+            Ces requêtes ne contiennent{" "}
+            <strong>aucune donnée personnelle ni identifiant</strong>, aucune
+            donnée de jeu (noms, scores, historique) et aucune statistique.
+            Comme pour toute connexion internet, GitHub voit uniquement
+            l&apos;adresse IP de l&apos;appareil. La version web
+            n&apos;effectue pas cette vérification.
           </p>
         </Section>
 

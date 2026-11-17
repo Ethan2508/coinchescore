@@ -6,22 +6,9 @@
 	<false/>
 	<key>NSPrivacyTrackingDomains</key>
 	<array/>
+	<!-- No data collected: live updates are self-hosted (no Capgo Cloud, stats disabled). -->
 	<key>NSPrivacyCollectedDataTypes</key>
-	<array>
-		<!-- Capgo live updates: the update check sends a random technical device ID (not linked to the user, no tracking). -->
-		<dict>
-			<key>NSPrivacyCollectedDataType</key>
-			<string>NSPrivacyCollectedDataTypeDeviceID</string>
-			<key>NSPrivacyCollectedDataTypeLinked</key>
-			<false/>
-			<key>NSPrivacyCollectedDataTypeTracking</key>
-			<false/>
-			<key>NSPrivacyCollectedDataTypePurposes</key>
-			<array>
-				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
-			</array>
-		</dict>
-	</array>
+	<array/>
 	<key>NSPrivacyAccessedAPITypes</key>
 	<array>
 		<!-- Required by @capgo/capacitor-updater (stores bundle state in UserDefaults). -->
