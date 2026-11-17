@@ -33,3 +33,7 @@ android/app/src/main/assets/capacitor.config.json
 # Android release signing (KEEP BACKUPS OUTSIDE REPO)
 android/app/coinchescore-release.keystore
 android/app/keystore.properties
+
+# Apple / Google API keys (never commit)
+*.p8
+AuthKey_*
