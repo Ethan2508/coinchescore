@@ -5,10 +5,8 @@
 Fichier généré : `android/app/coinchescore-release.keystore`  
 Backup posé sur ton **Bureau** : `~/Desktop/coinchescore-KEYSTORE-BACKUP.keystore`
 
-**Mot de passe (identique pour keystore et key)** :
-```
-W8oxlqxju9NtJcg06lhBDZMI
-```
+**Mot de passe (identique pour keystore et key)** : dans `android/app/keystore.properties` (local, gitignoré) et dans ton gestionnaire de mots de passe.
+⚠️ **Ne jamais l'écrire dans un fichier versionné** : le repo est public (il doit le rester pour les mises à jour à chaud, voir `LIVE_UPDATES.md`).
 
 **Alias** : `coinchescore`
 
