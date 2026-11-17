@@ -3,10 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import HeaderBar from "@/components/HeaderBar";
-import { makePlayers } from "@/lib/players";
+import TargetPicker from "@/components/TargetPicker";
+import { DIRECTION_LABEL, DIRECTION_SYMBOL, makePlayers } from "@/lib/players";
 import { useStore } from "@/lib/store";
+import type { Direction } from "@/lib/types";
 
-const PRESETS = [500, 1000, 1500, 2000, 3000];
+const DIRECTIONS: Direction[] = ["clockwise", "counterclockwise"];
 const SEAT_POSITIONS = [
   { label: "Nord", grid: "col-start-2 row-start-1" },
   { label: "Est", grid: "col-start-3 row-start-2" },
@@ -22,6 +24,7 @@ export default function NewGamePage() {
   const [teamB, setTeamB] = useState("Eux");
   const [teamsCustomized, setTeamsCustomized] = useState(false);
   const [target, setTarget] = useState(1000);
+  const [direction, setDirection] = useState<Direction>("clockwise");
   const [showPlayers, setShowPlayers] = useState(false);
   const [playerNames, setPlayerNames] = useState<string[]>([
     "",
@@ -52,7 +55,7 @@ export default function NewGamePage() {
       filledPlayers === 4
         ? makePlayers(playerNames as [string, string, string, string])
         : undefined;
-    startGame({ teamA, teamB, target, players });
+    startGame({ teamA, teamB, target, players, direction });
     router.push("/game");
   };
 
@@ -111,8 +114,8 @@ export default function NewGamePage() {
         {showPlayers && (
           <div className="mt-4">
             <p className="mb-3 text-xs text-white/50">
-              Places autour de la table, dans le sens des aiguilles d&apos;une
-              montre. Nord/Sud et Est/Ouest forment chacun une équipe.
+              Place chaque joueur à sa position autour de la table. Nord/Sud et
+              Est/Ouest forment chacun une équipe.
             </p>
             <div className="grid grid-cols-3 grid-rows-3 gap-2">
               {SEAT_POSITIONS.map((pos, i) => (
@@ -137,6 +140,28 @@ export default function NewGamePage() {
                 suivi individuel.
               </p>
             )}
+
+            <div className="mt-4">
+              <div className="mb-2 text-[10px] uppercase tracking-wider text-white/50">
+                Sens de jeu (donne et enchères)
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {DIRECTIONS.map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setDirection(d)}
+                    className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                      direction === d
+                        ? "border-gold-500 bg-gold-500 text-felt-950"
+                        : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+                    }`}
+                  >
+                    {DIRECTION_SYMBOL[d]} {DIRECTION_LABEL[d]}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </section>
@@ -145,32 +170,7 @@ export default function NewGamePage() {
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/60">
           Score à atteindre
         </h2>
-        <div className="mb-3 flex flex-wrap gap-2">
-          {PRESETS.map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setTarget(p)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                target === p
-                  ? "border-gold-500 bg-gold-500 text-felt-950"
-                  : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
-              }`}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-        <input
-          type="number"
-          inputMode="numeric"
-          value={target}
-          min={100}
-          max={9999}
-          step={100}
-          onChange={(e) => setTarget(Number(e.target.value) || 1000)}
-          className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-base text-white outline-none focus:border-gold-500"
-        />
+        <TargetPicker value={target} onChange={setTarget} />
       </section>
 
       {current && current.hands.length > 0 && (

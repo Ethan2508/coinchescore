@@ -50,6 +50,11 @@ export interface ScoreInput {
   taker: TeamId;
   contract: number;
   takerPoints: number;
+  /**
+   * Taker's team won every trick. Explicit because 160 rounded points is not necessarily a capot
+   * (the defense may have scored a few points). For Capot/Générale contracts this is the success flag.
+   */
+  capot: boolean;
   belote: "none" | TeamId;
   coinche: CoincheLevel;
 }
@@ -66,13 +71,13 @@ function clamp(n: number, min: number, max: number): number {
 }
 
 export function computeScore(input: ScoreInput): ScoreResult {
-  const takerPts = clamp(input.takerPoints, 0, HAND_TOTAL);
+  const capot = input.capot;
+  const takerPts = capot ? HAND_TOTAL : clamp(input.takerPoints, 0, HAND_TOTAL);
   const defensePts = HAND_TOTAL - takerPts;
   const allTricks = isAllTricksContract(input.contract);
   const belotAnnounced = isBelotAnnounced(input.contract);
   const coinched = !allTricks && input.coinche !== "none";
   const surMult = input.coinche === "surcoinche" ? 2 : 1;
-  const capot = takerPts === HAND_TOTAL;
 
   let takerScore = 0;
   let defenseScore = 0;

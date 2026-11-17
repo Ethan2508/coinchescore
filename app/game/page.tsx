@@ -7,7 +7,14 @@ import DealerWheel from "@/components/DealerWheel";
 import HandEditor from "@/components/HandEditor";
 import HeaderBar from "@/components/HeaderBar";
 import Modal from "@/components/Modal";
-import { hasPlayers, playerAtSeat, playerLabel } from "@/lib/players";
+import TargetPicker from "@/components/TargetPicker";
+import {
+  DIRECTION_LABEL,
+  DIRECTION_SYMBOL,
+  hasPlayers,
+  playerAtSeat,
+  playerLabel,
+} from "@/lib/players";
 import { totalScores, useStore } from "@/lib/store";
 import { contractLabel } from "@/lib/scoring";
 import { SUIT_COLOR, SUIT_SYMBOL, type Hand, type Player } from "@/lib/types";
@@ -25,12 +32,16 @@ export default function GamePage() {
     finishAndArchive,
     setTeamName,
     setDealerSeat,
+    setDirection,
+    setTarget,
   } = useStore();
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingHand, setEditingHand] = useState<Hand | undefined>(undefined);
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
+  /** Draft target while the "score à atteindre" modal is open; null when closed. */
+  const [draftTarget, setDraftTarget] = useState<number | null>(null);
 
   useEffect(() => {
     if (ready && !current) router.replace("/");
@@ -58,6 +69,13 @@ export default function GamePage() {
     hasPlayers(current.players) && current.dealerSeat !== undefined
       ? playerAtSeat(current.players, current.dealerSeat)
       : undefined;
+  const direction = current.direction ?? "clockwise";
+
+  const openTargetEditor = () => {
+    setMenuOpen(false);
+    setConfirmDiscard(false);
+    setDraftTarget(current.target);
+  };
 
   const openNewHand = () => {
     setEditingHand(undefined);
@@ -123,7 +141,10 @@ export default function GamePage() {
         <div className="mb-4 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-center text-sm">
           <span className="text-lg">🂠</span>{" "}
           <span className="font-semibold text-white">{dealer.name}</span>{" "}
-          <span className="text-white/60">distribue</span>
+          <span className="text-white/60">distribue</span>{" "}
+          <span className="text-white/40">
+            · {DIRECTION_SYMBOL[direction]} {DIRECTION_LABEL[direction]}
+          </span>
         </div>
       )}
 
@@ -135,13 +156,22 @@ export default function GamePage() {
           <div className="mt-1 font-display text-xl font-bold">
             {winner === "A" ? current.teamA : current.teamB} remporte
           </div>
-          <button
-            type="button"
-            onClick={handleFinish}
-            className="mt-3 rounded-xl bg-gold-500 px-4 py-2 text-sm font-bold text-felt-950 hover:bg-gold-400"
-          >
-            Terminer et archiver
-          </button>
+          <div className="mt-3 flex justify-center gap-2">
+            <button
+              type="button"
+              onClick={handleFinish}
+              className="rounded-xl bg-gold-500 px-4 py-2 text-sm font-bold text-felt-950 hover:bg-gold-400"
+            >
+              Terminer et archiver
+            </button>
+            <button
+              type="button"
+              onClick={openTargetEditor}
+              className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 hover:bg-white/10"
+            >
+              Prolonger
+            </button>
+          </div>
         </div>
       )}
 
@@ -212,6 +242,7 @@ export default function GamePage() {
           teamB={current.teamB}
           players={current.players}
           dealerSeat={current.dealerSeat}
+          direction={direction}
           handIndex={
             editingHand
               ? current.hands.findIndex((h) => h.id === editingHand.id) + 1
@@ -231,8 +262,33 @@ export default function GamePage() {
         >
           <DealerWheel
             players={current.players}
+            direction={direction}
             onResult={(seat) => setDealerSeat(seat)}
           />
+        </Modal>
+      )}
+
+      {draftTarget !== null && (
+        <Modal
+          open
+          onClose={() => setDraftTarget(null)}
+          title="Score à atteindre"
+        >
+          <p className="mb-3 text-xs text-white/50">
+            Score actuel : {current.teamA} {totals.a} · {current.teamB}{" "}
+            {totals.b}
+          </p>
+          <TargetPicker value={draftTarget} onChange={setDraftTarget} />
+          <button
+            type="button"
+            onClick={() => {
+              setTarget(draftTarget);
+              setDraftTarget(null);
+            }}
+            className="mt-4 w-full rounded-2xl bg-gold-500 px-6 py-3 text-base font-bold text-felt-950 shadow-lg shadow-black/30 transition hover:bg-gold-400 active:scale-95"
+          >
+            Valider {draftTarget} pts
+          </button>
         </Modal>
       )}
 
@@ -256,6 +312,34 @@ export default function GamePage() {
               >
                 🃏 Règles
               </Link>
+              <button
+                type="button"
+                onClick={openTargetEditor}
+                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm font-semibold text-white/90 hover:bg-white/10"
+              >
+                🎯 Score à atteindre : {current.target}
+              </button>
+              {hasPlayers(current.players) && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDirection(
+                      direction === "clockwise"
+                        ? "counterclockwise"
+                        : "clockwise",
+                    )
+                  }
+                  className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm font-semibold text-white/90 hover:bg-white/10"
+                >
+                  <span>
+                    {DIRECTION_SYMBOL[direction]} Sens de jeu :{" "}
+                    {DIRECTION_LABEL[direction]}
+                  </span>
+                  <span className="text-xs font-normal text-white/50">
+                    Inverser
+                  </span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {

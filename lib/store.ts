@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { nextDealerSeat, prevDealerSeat } from "./players";
+import { nextSeat, prevSeat } from "./players";
 import { computeScore, detectWinner, totalScores } from "./scoring";
-import type { Game, Hand, Player, TeamId } from "./types";
+import type { Direction, Game, Hand, Player, TeamId } from "./types";
 
 const CURRENT_KEY = "coinchescore:current";
 const HISTORY_KEY = "coinchescore:history";
@@ -72,9 +72,17 @@ function haptic(pattern: number | number[] = 8) {
   }
 }
 
+function advanceDealer(game: Game): number | undefined {
+  return game.dealerSeat !== undefined
+    ? nextSeat(game.dealerSeat, game.direction)
+    : undefined;
+}
+
 /** Each recorded hand advanced the dealer by one seat, so removing a hand moves it back by one. */
-function rewindDealer(seat: number | undefined): number | undefined {
-  return seat !== undefined ? prevDealerSeat(seat) : undefined;
+function rewindDealer(game: Game): number | undefined {
+  return game.dealerSeat !== undefined
+    ? prevSeat(game.dealerSeat, game.direction)
+    : undefined;
 }
 
 function recomputeWinner(game: Game): Game {
@@ -120,6 +128,7 @@ export function useStore() {
       teamB: string;
       target: number;
       players?: Player[];
+      direction?: Direction;
     }) => {
       const g: Game = {
         id: crypto.randomUUID(),
@@ -129,6 +138,7 @@ export function useStore() {
         hands: [],
         createdAt: Date.now(),
         players: opts.players,
+        direction: opts.direction ?? "clockwise",
       };
       setStore((s) => ({ ...s, current: g }));
       haptic([15, 40, 15]);
@@ -165,10 +175,7 @@ export function useStore() {
       const updated = recomputeWinner({
         ...s.current,
         hands: [...s.current.hands, newHand],
-        dealerSeat:
-          s.current.dealerSeat !== undefined
-            ? nextDealerSeat(s.current.dealerSeat)
-            : undefined,
+        dealerSeat: advanceDealer(s.current),
       });
       return { ...s, current: updated };
     });
@@ -198,7 +205,7 @@ export function useStore() {
       const updated = recomputeWinner({
         ...s.current,
         hands: s.current.hands.filter((h) => h.id !== id),
-        dealerSeat: rewindDealer(s.current.dealerSeat),
+        dealerSeat: rewindDealer(s.current),
       });
       return { ...s, current: updated };
     });
@@ -211,7 +218,7 @@ export function useStore() {
       const updated = recomputeWinner({
         ...s.current,
         hands: s.current.hands.slice(0, -1),
-        dealerSeat: rewindDealer(s.current.dealerSeat),
+        dealerSeat: rewindDealer(s.current),
       });
       return { ...s, current: updated };
     });
@@ -239,6 +246,23 @@ export function useStore() {
     haptic([10, 30, 10, 30, 20]);
   }, []);
 
+  const setDirection = useCallback((direction: Direction) => {
+    setStore((s) => {
+      if (!s.current) return s;
+      return { ...s, current: { ...s.current, direction } };
+    });
+    haptic(8);
+  }, []);
+
+  /** Change the score to reach mid-game; the winner is re-evaluated against the new target. */
+  const setTarget = useCallback((target: number) => {
+    setStore((s) => {
+      if (!s.current) return s;
+      return { ...s, current: recomputeWinner({ ...s.current, target }) };
+    });
+    haptic(10);
+  }, []);
+
   const clearHistory = useCallback(() => {
     setStore((s) => ({ ...s, history: [] }));
   }, []);
@@ -256,6 +280,8 @@ export function useStore() {
     undoLast,
     setTeamName,
     setDealerSeat,
+    setDirection,
+    setTarget,
     clearHistory,
   };
 }

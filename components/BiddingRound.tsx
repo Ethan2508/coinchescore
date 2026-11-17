@@ -6,13 +6,14 @@ import {
   contractShortLabel,
   isAllTricksContract,
 } from "@/lib/scoring";
-import { nextDealerSeat, playerAtSeat } from "@/lib/players";
+import { nextSeat, playerAtSeat } from "@/lib/players";
 import {
   SUITS,
   SUIT_COLOR,
   SUIT_SYMBOL,
   type BidEntry,
   type CoincheLevel,
+  type Direction,
   type Player,
   type Suit,
 } from "@/lib/types";
@@ -20,6 +21,7 @@ import {
 interface Props {
   players: Player[];
   startSeat: number;
+  direction?: Direction;
   onDone: (
     log: BidEntry[],
     last: BidEntry | null,
@@ -31,7 +33,12 @@ function isRealBid(e: BidEntry): boolean {
   return !e.pass && !e.coinche;
 }
 
-export default function BiddingRound({ players, startSeat, onDone }: Props) {
+export default function BiddingRound({
+  players,
+  startSeat,
+  direction,
+  onDone,
+}: Props) {
   const [log, setLog] = useState<BidEntry[]>([]);
   const [seat, setSeat] = useState(startSeat);
   const [suit, setSuit] = useState<Suit>("pique");
@@ -72,7 +79,7 @@ export default function BiddingRound({ players, startSeat, onDone }: Props) {
 
   const advance = (entry: BidEntry) => {
     setLog((l) => [...l, entry]);
-    setSeat(nextDealerSeat(seat));
+    setSeat(nextSeat(seat, direction));
   };
 
   const announce = () => {

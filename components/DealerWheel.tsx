@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import type { Player } from "@/lib/types";
+import { nextSeat } from "@/lib/players";
+import type { Direction, Player } from "@/lib/types";
 
 interface Props {
   players: Player[];
+  direction?: Direction;
   onResult: (seat: number) => void;
 }
 
-export default function DealerWheel({ players, onResult }: Props) {
+export default function DealerWheel({ players, direction, onResult }: Props) {
   const [spinning, setSpinning] = useState(false);
   const [highlighted, setHighlighted] = useState<number | null>(null);
   const [result, setResult] = useState<number | null>(null);
@@ -19,12 +21,17 @@ export default function DealerWheel({ players, onResult }: Props) {
     setResult(null);
     const finalSeat = Math.floor(Math.random() * 4);
 
-    const totalTicks = 18 + finalSeat;
+    // Spin in turn order from seat 0: four full turns, then land exactly on finalSeat.
+    let stepsToFinal = 0;
+    for (let s = 0; s !== finalSeat; s = nextSeat(s, direction)) stepsToFinal++;
+    const totalTicks = 17 + stepsToFinal;
     let tick = 0;
+    let seat = 0;
     let delay = 80;
 
     const step = () => {
-      setHighlighted(tick % 4);
+      setHighlighted(seat);
+      seat = nextSeat(seat, direction);
       tick += 1;
       if (tick < totalTicks) {
         delay += tick > totalTicks - 6 ? 40 : 6;

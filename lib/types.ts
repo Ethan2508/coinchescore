@@ -10,7 +10,13 @@ export type TeamId = "A" | "B";
 
 export type CoincheLevel = "none" | "coinche" | "surcoinche";
 
-/** Seat 0 and 2 are partners (team A), seat 1 and 3 are partners (team B). Seating order is clockwise. */
+/** Turn order around the table (deal and bidding). */
+export type Direction = "clockwise" | "counterclockwise";
+
+/**
+ * Seat 0 and 2 are partners (team A), seat 1 and 3 are partners (team B).
+ * Seats are numbered clockwise (0 Nord, 1 Est, 2 Sud, 3 Ouest); the turn order is `Game.direction`.
+ */
 export interface Player {
   id: string;
   name: string;
@@ -55,6 +61,8 @@ export interface Game {
   winner?: TeamId;
   players?: Player[];
   dealerSeat?: number;
+  /** Missing on games created before v1.2: treated as clockwise. */
+  direction?: Direction;
 }
 
 export const SUITS: Suit[] = [

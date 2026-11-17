@@ -20,6 +20,7 @@ import {
   SUIT_SYMBOL,
   type BidEntry,
   type CoincheLevel,
+  type Direction,
   type Hand,
   type Player,
   type Suit,
@@ -33,6 +34,7 @@ interface Props {
   teamB: string;
   players?: Player[];
   dealerSeat?: number;
+  direction?: Direction;
   handIndex: number;
   initial?: Hand;
   onSubmit: (hand: Omit<Hand, "id" | "createdAt">) => void;
@@ -45,6 +47,8 @@ const SEAT_GRID = [
   "col-start-1 row-start-2",
 ];
 
+const POINT_SHORTCUTS = [0, 50, 80, 90, 100, 110, 120, 130, 140, 150, 160];
+
 export default function HandEditor({
   open,
   onClose,
@@ -52,6 +56,7 @@ export default function HandEditor({
   teamB,
   players,
   dealerSeat,
+  direction,
   handIndex,
   initial,
   onSubmit,
@@ -79,6 +84,15 @@ export default function HandEditor({
   const [allTricksMade, setAllTricksMade] = useState<boolean>(
     initial ? !initial.chute : true,
   );
+  /** Unannounced capot on a regular contract (all tricks), distinct from 160 rounded points. */
+  const [capot, setCapot] = useState<boolean>(
+    initial ? initial.capot && !checkAllTricks(initial.contract) : false,
+  );
+
+  const pickPoints = (v: number) => {
+    setTakerPoints(v);
+    setCapot(false);
+  };
 
   const selectPlayer = (p: Player) => {
     setTaker(p.team);
@@ -106,11 +120,14 @@ export default function HandEditor({
 
   const isAllTricksContract = checkAllTricks(contract);
   const belotAnnounced = checkBelotAnnounced(contract);
+  const effectiveCapot = isAllTricksContract ? allTricksMade : capot;
   const effectiveTakerPoints = isAllTricksContract
     ? allTricksMade
       ? HAND_TOTAL
       : 0
-    : takerPoints;
+    : capot
+      ? HAND_TOTAL
+      : takerPoints;
   const beloteIncludedInContract = belotAnnounced && allTricksMade;
   const effectiveBelote = beloteIncludedInContract ? "none" : belote;
 
@@ -118,6 +135,7 @@ export default function HandEditor({
     taker,
     contract,
     takerPoints: effectiveTakerPoints,
+    capot: effectiveCapot,
     belote: effectiveBelote,
     coinche,
   });
@@ -145,7 +163,8 @@ export default function HandEditor({
       <Modal open onClose={onClose} title="Enchères">
         <BiddingRound
           players={players!}
-          startSeat={firstToBidSeat(dealerSeat ?? 0)}
+          startSeat={firstToBidSeat(dealerSeat ?? 0, direction)}
+          direction={direction}
           onDone={handleBiddingDone}
         />
       </Modal>
@@ -310,30 +329,54 @@ export default function HandEditor({
       )}
 
       {!isAllTricksContract && (
-        <Section label={`Points du preneur : ${takerPoints} / ${HAND_TOTAL}`}>
+        <Section
+          label={`Points du preneur : ${capot ? "Capot" : `${takerPoints} / ${HAND_TOTAL}`}`}
+        >
           <input
             type="range"
             min={0}
             max={HAND_TOTAL}
             step={HAND_STEP}
-            value={takerPoints}
-            onChange={(e) => setTakerPoints(Number(e.target.value))}
+            value={capot ? HAND_TOTAL : takerPoints}
+            onChange={(e) => pickPoints(Number(e.target.value))}
             className="w-full"
           />
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {[0, 50, 80, 90, 100, 110, 120, 140, 160].map((v) => (
+            {POINT_SHORTCUTS.map((v) => (
               <button
                 key={v}
                 type="button"
-                onClick={() => setTakerPoints(v)}
-                className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs text-white/70 hover:bg-white/10"
+                onClick={() => pickPoints(v)}
+                className={`rounded-full border px-2 py-0.5 text-xs transition ${
+                  !capot && takerPoints === v
+                    ? "border-gold-500 bg-gold-500/15 text-white"
+                    : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+                }`}
               >
                 {v}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => {
+                setCapot(true);
+                setTakerPoints(HAND_TOTAL);
+              }}
+              className={`rounded-full border px-2 py-0.5 text-xs font-semibold transition ${
+                capot
+                  ? "border-gold-500 bg-gold-500 text-felt-950"
+                  : "border-gold-500/40 bg-gold-500/10 text-gold-400 hover:bg-gold-500/20"
+              }`}
+            >
+              Capot
+            </button>
           </div>
           <p className="mt-2 text-xs text-white/40">
-            Arrondi aux dizaines · défense = {HAND_TOTAL - takerPoints}
+            {capot
+              ? "Le preneur a fait tous les plis (bonus capot +90)"
+              : takerPoints === HAND_TOTAL
+                ? "160 sans capot : la défense a fait au moins un pli"
+                : `Arrondi aux dizaines · défense = ${HAND_TOTAL - takerPoints}`}
           </p>
         </Section>
       )}

@@ -106,6 +106,12 @@ function CoincheRules() {
             preneur = <em>contrat + points faits</em>, défense = points faits.
           </li>
           <li>
+            <strong>Capot non annoncé</strong> (le preneur fait tous les
+            plis)&nbsp;: preneur = <em>contrat + 250</em> (160 + 90 de
+            bonus). Attention, 160 points aux dizaines n&apos;est pas
+            forcément un capot&nbsp;: la défense a pu faire un pli.
+          </li>
+          <li>
             <strong>Chute</strong>&nbsp;: preneur = 0, défense ={" "}
             <em>160 + contrat</em>.
           </li>
