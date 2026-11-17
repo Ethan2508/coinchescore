@@ -14,6 +14,15 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: "https",
   },
+  plugins: {
+    // Capgo live updates: download in the foreground, apply the next time the app goes to background.
+    // Changing these options requires a store release (native config, not shipped by live updates).
+    CapacitorUpdater: {
+      autoUpdate: true,
+      // No health/usage stats sent to Capgo (keeps data sharing to the bare update check; see /privacy).
+      statsUrl: "",
+    },
+  },
 };
 
 export default config;

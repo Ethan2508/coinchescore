@@ -1,6 +1,6 @@
 {
   "name": "coinchescore",
-  "version": "0.1.0",
+  "version": "1.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -10,7 +10,8 @@
     "assets": "node scripts/generate-assets.mjs && capacitor-assets generate --iconBackgroundColor \"#022c22\" --splashBackgroundColor \"#022c22\"",
     "cap:sync": "npm run build && cap sync",
     "ios": "npm run cap:sync && cap open ios",
-    "android": "npm run cap:sync && cap open android"
+    "android": "npm run cap:sync && cap open android",
+    "live-update": "npm version patch --no-git-tag-version && npm run build && npx @capgo/cli@latest bundle upload --channel production"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
@@ -18,6 +19,7 @@
     "@capacitor/haptics": "^8.0.2",
     "@capacitor/ios": "^8.5.0",
     "@capacitor/status-bar": "^8.0.3",
+    "@capgo/capacitor-updater": "^8.54.2",
     "next": "^16.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

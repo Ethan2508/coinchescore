@@ -11,16 +11,19 @@ export default function PrivacyPage() {
 
       <div className="prose prose-invert max-w-none text-sm leading-relaxed text-white/80">
         <p className="mb-3 text-xs text-white/50">
-          Dernière mise à jour&nbsp;: août 2026
+          Dernière mise à jour&nbsp;: novembre 2026
         </p>
 
         <Section title="En bref">
           <p>
             CoincheScore ne collecte aucune donnée personnelle. Toutes les
-            informations (noms d&apos;équipes, scores, historique des parties)
-            sont stockées <strong>uniquement sur votre appareil</strong>. Nous
-            n&apos;utilisons ni compte utilisateur, ni serveur, ni publicité,
-            ni tracking.
+            informations (noms d&apos;équipes et de joueurs, scores, historique
+            des parties) sont stockées{" "}
+            <strong>uniquement sur votre appareil</strong>. Nous
+            n&apos;utilisons ni compte utilisateur, ni publicité, ni tracking.
+            Seule l&apos;application mobile contacte un serveur, pour vérifier
+            si une nouvelle version de son contenu est disponible (voir
+            ci-dessous).
           </p>
         </Section>
 
@@ -30,7 +33,7 @@ export default function PrivacyPage() {
             navigateur ou de votre téléphone&nbsp;:
           </p>
           <ul className="list-disc space-y-1 pl-5">
-            <li>Le nom des équipes</li>
+            <li>Le nom des équipes et, si vous les saisissez, des joueurs</li>
             <li>Le score cible de la partie</li>
             <li>Les manches (contrat, atout, points, belote, coinche)</li>
             <li>L&apos;historique des parties archivées</li>
@@ -47,8 +50,27 @@ export default function PrivacyPage() {
         <Section title="Aucun tracking, aucune publicité">
           <p>
             L&apos;application ne contient&nbsp;: aucune publicité, aucune
-            analytique, aucun cookie tiers, aucun SDK de suivi, aucun appel
-            réseau externe pendant le jeu.
+            analytique, aucun cookie tiers, aucun SDK de suivi. Le seul appel
+            réseau est la vérification de mise à jour décrite ci-dessous.
+          </p>
+        </Section>
+
+        <Section title="Mises à jour de l'application mobile">
+          <p>
+            Pour recevoir rapidement les corrections et améliorations,
+            l&apos;application iOS / Android vérifie à son ouverture, auprès
+            de notre prestataire <strong>Capgo</strong>, si une nouvelle
+            version de son contenu est disponible, puis la télécharge.
+          </p>
+          <p>
+            Cette vérification transmet uniquement des informations
+            techniques&nbsp;: un identifiant aléatoire propre à
+            l&apos;installation (non lié à votre identité), la version de
+            l&apos;application et le système (iOS ou Android et sa version).{" "}
+            <strong>Aucune donnée de jeu</strong> (noms, scores, historique)
+            n&apos;est transmise, et aucune statistique d&apos;utilisation
+            n&apos;est envoyée. La version web n&apos;effectue pas cette
+            vérification.
           </p>
         </Section>
 
@@ -59,8 +81,8 @@ export default function PrivacyPage() {
         <Section title="Enfants">
           <p>
             L&apos;application peut être utilisée par tous les âges. Elle ne
-            collecte aucune donnée, donc aucune donnée d&apos;enfant
-            n&apos;est traitée.
+            collecte aucune donnée personnelle, donc aucune donnée
+            d&apos;enfant n&apos;est traitée.
           </p>
         </Section>
 
