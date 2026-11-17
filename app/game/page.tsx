@@ -21,6 +21,7 @@ export default function GamePage() {
     updateHand,
     deleteHand,
     undoLast,
+    abandonGame,
     finishAndArchive,
     setTeamName,
     setDealerSeat,
@@ -201,21 +202,25 @@ export default function GamePage() {
         </div>
       </div>
 
-      <HandEditor
-        open={editorOpen}
-        onClose={() => setEditorOpen(false)}
-        teamA={current.teamA}
-        teamB={current.teamB}
-        players={current.players}
-        dealerSeat={current.dealerSeat}
-        handIndex={
-          editingHand
-            ? current.hands.findIndex((h) => h.id === editingHand.id) + 1
-            : current.hands.length + 1
-        }
-        initial={editingHand}
-        onSubmit={handleSubmit}
-      />
+      {/* Mounted only while open so its form state is re-initialized from `initial` on every open. */}
+      {editorOpen && (
+        <HandEditor
+          key={editingHand?.id ?? "new"}
+          open
+          onClose={() => setEditorOpen(false)}
+          teamA={current.teamA}
+          teamB={current.teamB}
+          players={current.players}
+          dealerSeat={current.dealerSeat}
+          handIndex={
+            editingHand
+              ? current.hands.findIndex((h) => h.id === editingHand.id) + 1
+              : current.hands.length + 1
+          }
+          initial={editingHand}
+          onSubmit={handleSubmit}
+        />
+      )}
 
       {showDealerWheel && current.players && (
         <Modal
@@ -268,6 +273,7 @@ export default function GamePage() {
                     setConfirmDiscard(true);
                     return;
                   }
+                  abandonGame();
                   router.push("/");
                   setMenuOpen(false);
                   setConfirmDiscard(false);

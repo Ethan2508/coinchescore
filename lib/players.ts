@@ -21,6 +21,10 @@ export function nextDealerSeat(current: number): number {
   return (current + 1) % 4;
 }
 
+export function prevDealerSeat(current: number): number {
+  return (current + 3) % 4;
+}
+
 export function playerAtSeat(players: Player[], seat: number): Player | undefined {
   return players.find((p) => p.seat === seat);
 }

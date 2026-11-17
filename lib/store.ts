@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { nextDealerSeat } from "./players";
+import { nextDealerSeat, prevDealerSeat } from "./players";
 import { computeScore, detectWinner, totalScores } from "./scoring";
 import type { Game, Hand, Player, TeamId } from "./types";
 
@@ -70,6 +70,11 @@ function haptic(pattern: number | number[] = 8) {
   } catch {
     // ignore
   }
+}
+
+/** Each recorded hand advanced the dealer by one seat, so removing a hand moves it back by one. */
+function rewindDealer(seat: number | undefined): number | undefined {
+  return seat !== undefined ? prevDealerSeat(seat) : undefined;
 }
 
 function recomputeWinner(game: Game): Game {
@@ -189,10 +194,11 @@ export function useStore() {
 
   const deleteHand = useCallback((id: string) => {
     setStore((s) => {
-      if (!s.current) return s;
+      if (!s.current || !s.current.hands.some((h) => h.id === id)) return s;
       const updated = recomputeWinner({
         ...s.current,
         hands: s.current.hands.filter((h) => h.id !== id),
+        dealerSeat: rewindDealer(s.current.dealerSeat),
       });
       return { ...s, current: updated };
     });
@@ -205,6 +211,7 @@ export function useStore() {
       const updated = recomputeWinner({
         ...s.current,
         hands: s.current.hands.slice(0, -1),
+        dealerSeat: rewindDealer(s.current.dealerSeat),
       });
       return { ...s, current: updated };
     });
