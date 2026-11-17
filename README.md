@@ -69,15 +69,22 @@ Puis ouvrir http://localhost:3000.
 | `npm run cap:sync` | build + synchronisation des projets natifs |
 | `npm run assets` | régénère icônes et splash screens natifs (dessins définis dans `scripts/generate-assets.mjs`) |
 | `npm run live-update` | publie une mise à jour à chaud (voir plus bas) |
+| `npm run version:set -- 1.3.0` | prépare une nouvelle version store : même version partout, numéros de build incrémentés |
+| `npm run release:ios` | sortie iOS complète : archive, envoi sur App Store Connect, soumission à Apple |
 | `./scripts/build-android-release.sh` | génère l'AAB signé `coinchescore-release.aab` pour le Play Store |
 
 ## Publier
 
 - **Web** : l'export statique est hébergé sur Vercel.
-- **Android** : `./scripts/build-android-release.sh`, puis envoi de l'AAB dans la Play Console. Il faut la keystore et `android/app/keystore.properties` en local (non versionnés). Voir [ANDROID_STORE_GUIDE.md](ANDROID_STORE_GUIDE.md).
-- **iOS** : `npm run ios`, puis Product → Archive dans Xcode.
 
-Pour une nouvelle version store, mettre à jour la version partout : `package.json`, `android/app/build.gradle` (`versionName` / `versionCode`) et Xcode (`MARKETING_VERSION` / `CURRENT_PROJECT_VERSION`).
+Pour une nouvelle version sur les stores :
+
+1. `npm run version:set -- 1.3.0` : met la même version dans `package.json`, Xcode, `build.gradle` et l'écran d'accueil, incrémente les numéros de build et crée `release-notes/1.3.0.txt`.
+2. Écrire les nouveautés dans `release-notes/1.3.0.txt` (texte affiché sur les stores), puis commiter.
+3. **iOS** : `npm run release:ios`. Le script archive, envoie sur App Store Connect, attend le traitement par Apple, crée la version avec les nouveautés et la soumet, avec publication automatique après validation. `-- --no-submit` prépare la version sans la soumettre.
+   - Prérequis : compte Apple connecté dans Xcode et clé API App Store Connect dans `~/.appstoreconnect/`, hors du repo (voir [`scripts/asc/client.mjs`](scripts/asc/client.mjs)).
+   - `node scripts/asc/release.mjs status --bundle-id app.coinchescore` affiche l'état chez Apple.
+4. **Android** : `./scripts/build-android-release.sh`, puis envoi de l'AAB dans la Play Console. Il faut la keystore et `android/app/keystore.properties` en local (non versionnés). Voir [ANDROID_STORE_GUIDE.md](ANDROID_STORE_GUIDE.md).
 
 ## Mises à jour à chaud (gratuites)
 

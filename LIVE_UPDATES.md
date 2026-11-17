@@ -40,13 +40,13 @@ Dès qu'on touche au natif :
 - modification de `capacitor.config.ts` ;
 - icônes, splash screen, permissions, `Info.plist`, `build.gradle`.
 
-Dans ce cas, passer à la **version mineure suivante** partout (ex. **1.3.0**, build 4) :
+Dans ce cas, passer à la **version mineure suivante** :
 
-- `package.json` (`version`) ;
-- `android/app/build.gradle` (`versionName` / `versionCode`) ;
-- Xcode (`MARKETING_VERSION` / `CURRENT_PROJECT_VERSION`).
+1. `npm run version:set -- 1.3.0` (iOS, Android, `package.json` et numéros de build en une fois) ;
+2. écrire les nouveautés dans `release-notes/1.3.0.txt`, puis commiter ;
+3. publier : `npm run release:ios` et `./scripts/build-android-release.sh`.
 
-Ensuite, publier sur les stores (`./scripts/build-android-release.sh` pour Android, Archive dans Xcode pour iOS), puis reprendre les mises à jour à chaud en 1.3.1, 1.3.2…
+Reprendre ensuite les mises à jour à chaud en 1.3.1, 1.3.2…
 
 Les téléphones restés en 1.2.0 ignorent automatiquement les versions 1.3.x, qui pourraient dépendre du nouveau natif.
 

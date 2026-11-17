@@ -1,0 +1,5 @@
+• Choix du sens de jeu : horaire ou anti-horaire
+• Nouveau bouton « Capot », distinct de 160 points
+• Raccourcis 130 et 150 pour les points du preneur
+• Score à atteindre modifiable en cours de partie (« Prolonger » après une victoire)
+• Corrections : modification d'une manche, abandon de partie, rotation du donneur après une annulation
