@@ -70,6 +70,31 @@ function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
 }
 
+/**
+ * Regular contract (80–160) fulfilled? The belote (+20) helps only when held by the taker's team
+ * and the taker is strictly ahead of the defense.
+ */
+export function isContractMade(
+  contract: number,
+  takerPoints: number,
+  beloteWithTaker: boolean,
+): boolean {
+  const pts = clamp(takerPoints, 0, HAND_TOTAL);
+  const beloteHelps = beloteWithTaker && pts > HAND_TOTAL - pts;
+  return pts + (beloteHelps ? 20 : 0) >= contract;
+}
+
+/**
+ * Lowest rounded taker score that fulfils a regular contract. Anything below is a chute, and the
+ * exact points no longer matter (taker 0, defense 160 + contract), hence a single "< min" choice.
+ */
+export function minMakingPoints(contract: number, beloteWithTaker: boolean): number {
+  for (let p = 0; p <= HAND_TOTAL; p += HAND_STEP) {
+    if (isContractMade(contract, p, beloteWithTaker)) return p;
+  }
+  return HAND_TOTAL;
+}
+
 export function computeScore(input: ScoreInput): ScoreResult {
   const capot = input.capot;
   const takerPts = capot ? HAND_TOTAL : clamp(input.takerPoints, 0, HAND_TOTAL);
@@ -101,11 +126,11 @@ export function computeScore(input: ScoreInput): ScoreResult {
       defenseScore = 500;
     }
   } else {
-    const belotHelpsTaker =
-      input.belote === input.taker && takerPts > defensePts;
-    const effectiveTakerForContract =
-      takerPts + (belotHelpsTaker ? 20 : 0);
-    const made = effectiveTakerForContract >= input.contract;
+    const made = isContractMade(
+      input.contract,
+      takerPts,
+      input.belote === input.taker,
+    );
 
     if (coinched) {
       const coincheScore = (320 + input.contract) * surMult;

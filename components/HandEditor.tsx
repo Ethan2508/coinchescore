@@ -12,6 +12,7 @@ import {
   contractShortLabel,
   isAllTricksContract as checkAllTricks,
   isBelotAnnounced as checkBelotAnnounced,
+  minMakingPoints,
 } from "@/lib/scoring";
 import { firstToBidSeat } from "@/lib/players";
 import {
@@ -46,8 +47,6 @@ const SEAT_GRID = [
   "col-start-2 row-start-3",
   "col-start-1 row-start-2",
 ];
-
-const POINT_SHORTCUTS = [0, 50, 80, 90, 100, 110, 120, 130, 140, 150, 160];
 
 export default function HandEditor({
   open,
@@ -88,10 +87,25 @@ export default function HandEditor({
   const [capot, setCapot] = useState<boolean>(
     initial ? initial.capot && !checkAllTricks(initial.contract) : false,
   );
+  /**
+   * "< min" was picked: a chute whose exact points don't matter. Kept as a choice (not a number) so
+   * it stays a chute if the contract, taker or belote changes afterwards.
+   */
+  const [chuteChosen, setChuteChosen] = useState(false);
 
   const pickPoints = (v: number) => {
     setTakerPoints(v);
     setCapot(false);
+    setChuteChosen(false);
+  };
+  const pickChute = () => {
+    setChuteChosen(true);
+    setCapot(false);
+  };
+  const pickCapot = () => {
+    setCapot(true);
+    setChuteChosen(false);
+    setTakerPoints(HAND_TOTAL);
   };
 
   const selectPlayer = (p: Player) => {
@@ -120,6 +134,11 @@ export default function HandEditor({
 
   const isAllTricksContract = checkAllTricks(contract);
   const belotAnnounced = checkBelotAnnounced(contract);
+  // Point shortcuts start at the lowest score that fulfils the contract (lower with the belote).
+  const minMade = minMakingPoints(contract, belote === taker);
+  const isChute = !capot && (chuteChosen || takerPoints < minMade);
+  const pointChoices: number[] = [];
+  for (let p = minMade; p <= HAND_TOTAL; p += HAND_STEP) pointChoices.push(p);
   const effectiveCapot = isAllTricksContract ? allTricksMade : capot;
   const effectiveTakerPoints = isAllTricksContract
     ? allTricksMade
@@ -127,7 +146,9 @@ export default function HandEditor({
       : 0
     : capot
       ? HAND_TOTAL
-      : takerPoints;
+      : chuteChosen
+        ? minMade - HAND_STEP
+        : takerPoints;
   const beloteIncludedInContract = belotAnnounced && allTricksMade;
   const effectiveBelote = beloteIncludedInContract ? "none" : belote;
 
@@ -328,59 +349,7 @@ export default function HandEditor({
         </Section>
       )}
 
-      {!isAllTricksContract && (
-        <Section
-          label={`Points du preneur : ${capot ? "Capot" : `${takerPoints} / ${HAND_TOTAL}`}`}
-        >
-          <input
-            type="range"
-            min={0}
-            max={HAND_TOTAL}
-            step={HAND_STEP}
-            value={capot ? HAND_TOTAL : takerPoints}
-            onChange={(e) => pickPoints(Number(e.target.value))}
-            className="w-full"
-          />
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {POINT_SHORTCUTS.map((v) => (
-              <button
-                key={v}
-                type="button"
-                onClick={() => pickPoints(v)}
-                className={`rounded-full border px-2 py-0.5 text-xs transition ${
-                  !capot && takerPoints === v
-                    ? "border-gold-500 bg-gold-500/15 text-white"
-                    : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
-                }`}
-              >
-                {v}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => {
-                setCapot(true);
-                setTakerPoints(HAND_TOTAL);
-              }}
-              className={`rounded-full border px-2 py-0.5 text-xs font-semibold transition ${
-                capot
-                  ? "border-gold-500 bg-gold-500 text-felt-950"
-                  : "border-gold-500/40 bg-gold-500/10 text-gold-400 hover:bg-gold-500/20"
-              }`}
-            >
-              Capot
-            </button>
-          </div>
-          {!capot && (
-            <p className="mt-2 text-xs text-white/40">
-              {takerPoints === HAND_TOTAL
-                ? "160 sans capot : la défense a fait au moins un pli"
-                : `Arrondi aux dizaines · défense = ${HAND_TOTAL - takerPoints}`}
-            </p>
-          )}
-        </Section>
-      )}
-
+      {/* Before the points: the belote changes the lowest score that fulfils the contract. */}
       {beloteIncludedInContract ? (
         <div className="mb-4 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200">
           Belote annoncée dans le contrat (+40 déjà inclus dans le score).
@@ -403,6 +372,65 @@ export default function HandEditor({
               </button>
             ))}
           </div>
+        </Section>
+      )}
+
+      {!isAllTricksContract && (
+        <Section
+          label={`Points du preneur : ${
+            capot ? "Capot" : isChute ? `moins de ${minMade} (chute)` : `${takerPoints} / ${HAND_TOTAL}`
+          }`}
+        >
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              onClick={pickChute}
+              aria-label={`Moins de ${minMade} (chute)`}
+              className={`rounded-full border px-2.5 py-1 text-sm font-semibold transition ${
+                isChute
+                  ? "border-red-500 bg-red-500 text-white"
+                  : "border-red-500/40 bg-red-500/10 text-red-300 hover:bg-red-500/20"
+              }`}
+            >
+              &lt;{minMade}
+            </button>
+            {pointChoices.map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => pickPoints(v)}
+                className={`rounded-full border px-2.5 py-1 text-sm transition ${
+                  !capot && !isChute && takerPoints === v
+                    ? "border-gold-500 bg-gold-500/15 text-white"
+                    : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+                }`}
+              >
+                {v}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={pickCapot}
+              className={`rounded-full border px-2.5 py-1 text-sm font-semibold transition ${
+                capot
+                  ? "border-gold-500 bg-gold-500 text-felt-950"
+                  : "border-gold-500/40 bg-gold-500/10 text-gold-400 hover:bg-gold-500/20"
+              }`}
+            >
+              Capot
+            </button>
+          </div>
+          {!capot && minMade < contract ? (
+            <p className="mt-2 text-xs text-white/40">
+              Avec la belote, {minMade} points suffisent pour faire {contract}.
+            </p>
+          ) : !capot && !isChute ? (
+            <p className="mt-2 text-xs text-white/40">
+              {takerPoints === HAND_TOTAL
+                ? "160 sans capot : la défense a fait au moins un pli"
+                : `Arrondi aux dizaines · défense = ${HAND_TOTAL - takerPoints}`}
+            </p>
+          ) : null}
         </Section>
       )}
 
