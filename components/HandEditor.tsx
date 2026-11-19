@@ -371,13 +371,13 @@ export default function HandEditor({
               Capot
             </button>
           </div>
-          <p className="mt-2 text-xs text-white/40">
-            {capot
-              ? "Le preneur a fait tous les plis (bonus capot +90)"
-              : takerPoints === HAND_TOTAL
+          {!capot && (
+            <p className="mt-2 text-xs text-white/40">
+              {takerPoints === HAND_TOTAL
                 ? "160 sans capot : la défense a fait au moins un pli"
                 : `Arrondi aux dizaines · défense = ${HAND_TOTAL - takerPoints}`}
-          </p>
+            </p>
+          )}
         </Section>
       )}
 
